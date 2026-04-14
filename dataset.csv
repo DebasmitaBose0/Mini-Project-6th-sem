@@ -1,0 +1,43 @@
+original_sentence,transformed_sentence,transformation_type,similarity_score,same_meaning
+My name is Monika.,is Monika My name.,reorder,0.556,True
+My name is Monika.,mine name is Monika.,pronoun_change,0.895,True
+My name is Monika.,Is monika is name by My.,active_to_passive,0.476,True
+My name is Monika.,My name is Monika.,passive_to_active,1.0,True
+My name is Monika.,I am Monika.,human_rewrite,0.733,True
+I wrote the letter.,the letter I wrote.,reorder,0.579,True
+I wrote the letter.,me wrote the letter.,pronoun_change,0.923,True
+I wrote the letter.,The letter is wrote by I.,active_to_passive,0.5,True
+I wrote the letter.,I wrote the letter.,passive_to_active,1.0,True
+I wrote the letter.,I have written the letter.,human_rewrite,0.8,True
+She loves music.,She loves music.,reorder,1.0,True
+She loves music.,her loves music.,pronoun_change,0.938,True
+She loves music.,She loves music.,active_to_passive,1.0,True
+She loves music.,She loves music.,passive_to_active,1.0,True
+They are playing football.,playing football They are.,reorder,0.654,True
+They are playing football.,them are playing football.,pronoun_change,0.962,True
+They are playing football.,football are playing.,active_to_passive,0.596,True
+They are playing football.,They are playing football.,passive_to_active,1.0,True
+He gave the book to me.,book to me He gave the.,reorder,0.522,True
+He gave the book to me.,him gave the book to I.,pronoun_change,0.87,True
+He gave the book to me.,The book to me is gave by He.,active_to_passive,0.577,True
+He gave the book to me.,He gave the book to me.,passive_to_active,1.0,True
+The teacher teaches the class.,teaches the class The teacher.,reorder,0.6,True
+The teacher teaches the class.,The teacher teaches the class.,pronoun_change,1.0,True
+The teacher teaches the class.,Teaches the class is teacher by The.,active_to_passive,0.545,True
+The teacher teaches the class.,The teacher teaches the class.,passive_to_active,1.0,True
+The cat chased the mouse.,chased the mouse The cat.,reorder,0.68,True
+The cat chased the mouse.,The cat chased the mouse.,pronoun_change,1.0,True
+The cat chased the mouse.,Chased the mouse is cat by The.,active_to_passive,0.607,True
+The cat chased the mouse.,The cat chased the mouse.,passive_to_active,1.0,True
+He will finish the work tomorrow.,the work tomorrow He will finish.,reorder,0.545,True
+He will finish the work tomorrow.,him will finish the work tomorrow.,pronoun_change,0.955,True
+He will finish the work tomorrow.,Finish the work tomorrow is will by He.,active_to_passive,0.694,True
+He will finish the work tomorrow.,He will finish the work tomorrow.,passive_to_active,1.0,True
+She can answer the question.,answer the question She can.,reorder,0.714,True
+She can answer the question.,her can answer the question.,pronoun_change,0.964,True
+She can answer the question.,Answer the question is can by She.,active_to_passive,0.645,True
+She can answer the question.,She can answer the question.,passive_to_active,1.0,True
+The child is drawing a picture.,drawing a picture The child is.,reorder,0.581,True
+The child is drawing a picture.,The child is drawing a picture.,pronoun_change,1.0,True
+The child is drawing a picture.,Is drawing a picture is child by The.,active_to_passive,0.618,True
+The child is drawing a picture.,The child is drawing a picture.,passive_to_active,1.0,True
