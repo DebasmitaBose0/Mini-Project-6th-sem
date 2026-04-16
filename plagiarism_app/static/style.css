@@ -360,9 +360,15 @@ body {
 /* ─── Buttons ─── */
 .action-row {
     display: flex;
-    gap: 12px;
+    gap: 16px;
+    row-gap: 14px;
     justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
+}
+
+.action-row > button {
+    margin: 0;
 }
 
 .btn-primary {
