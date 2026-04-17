@@ -79,6 +79,8 @@ If you want to use a smaller dataset for faster training:
 python train_model.py --sample 200000
 ```
 
+> Optional: set `OPENAI_API_KEY` to enable higher-quality sentence rewriting via OpenAI. When configured, the app uses the API for reconstruction; otherwise it falls back to local heuristic rewriting.
+
 ---
 
 ## 📂 Dataset and Utility Scripts
