@@ -55,14 +55,8 @@
                         <span class="logo-text">Plagiarism<span class="logo-accent">AI</span></span>
                     </div>
                     <div class="header-status">
-                        {% if model_loaded %}
-                        <div class="status-badge status-online">
-                            <span class="status-dot"></span>
-                            <span>ML Model Active</span>
-                        </div>
-                        {% else %}
+                        {% if not model_loaded %}
                         <div class="status-badge status-fallback">
-                            <span class="status-dot"></span>
                             <span>Rule-Based Mode</span>
                         </div>
                         {% endif %}
@@ -132,14 +126,6 @@
                                 <line x1="8" y1="10" x2="16" y2="10" />
                             </svg>
                             Bulk Scan
-                        </button>
-                        <button class="mode-tab" id="tab-verify" onclick="switchMode('verify')">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                            Verify Rewrite
                         </button>
                     </div>
                 </section>
@@ -275,46 +261,6 @@
                     </div>
                 </section>
 
-                <!-- Iterative Rewrite Mode -->
-                <!-- Single Sentence Iterative Mode -->
-                <section class="input-section hidden" id="rewrite-mode">
-                    <div class="input-card" style="max-width: 800px; margin: 0 auto;">
-                        <div class="input-header">
-                            <span class="input-label">Paste Suspected Plag Sentence</span>
-                            <span class="char-count" id="single-plag-count">0 chars</span>
-                        </div>
-                        <textarea id="single-plag-input" class="text-input"
-                            placeholder="Enter one sentence you want to reconstruct..."
-                            oninput="updateCharCount('single-plag-input', 'single-plag-count')"></textarea>
-                    </div>
-                    <div class="action-row" style="justify-content: center; margin-top: 24px;">
-                        <button class="btn-primary" id="btn-generate-verify" onclick="generateAndVerifySingle()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22,4 12,14.01 9,11.01" />
-                            </svg>
-                            Generate Reconstruction & Verify
-                        </button>
-                        <button class="btn-secondary" onclick="clearSingle()">
-                            Clear
-                        </button>
-                    </div>
-                    <div class="action-row" style="justify-content: center; margin-top: 24px;">
-                        <button class="btn-primary" id="btn-verify-rewrite" onclick="verifyRewrite()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22,4 12,14.01 9,11.01" />
-                            </svg>
-                            Verify My Rewrite
-                        </button>
-                        <button class="btn-secondary" onclick="clearRewrite()">
-                            Clear All
-                        </button>
-                    </div>
-                </section>
-
                 <!-- Results Section -->
                 <section class="results-section hidden" id="results-section">
                     <div id="results-content"></div>
@@ -323,7 +269,7 @@
 
             <!-- Footer -->
             <footer class="footer">
-                <p>Mini Project application | Copyright claim by Manisha, Joita, Debasmita, Suchitra</p>
+                <p>Mini Project application | Copyright © 2026 Project - Manisha, Joita, Debasmita, Suchitra</p>
             </footer>
         </div> <!-- End Workspace -->
     </div> <!-- End App Wrapper -->
@@ -338,7 +284,6 @@
         window.onload = () => {
             renderHistory();
         };
-        main
 
         // ─────────────────────────────────────────────
         // Mode Switching
@@ -350,13 +295,11 @@
             document.getElementById('tab-auto').classList.toggle('active', mode === 'auto');
             document.getElementById('tab-compare').classList.toggle('active', mode === 'compare');
             document.getElementById('tab-corpus').classList.toggle('active', mode === 'corpus');
-            document.getElementById('tab-verify').classList.toggle('active', mode === 'verify');
 
             // Update sections
             document.getElementById('auto-mode').classList.toggle('hidden', mode !== 'auto');
             document.getElementById('compare-mode').classList.toggle('hidden', mode !== 'compare');
             document.getElementById('corpus-mode').classList.toggle('hidden', mode !== 'corpus');
-            document.getElementById('rewrite-mode').classList.toggle('hidden', mode !== 'verify');
 
             document.getElementById('results-section').classList.add('hidden');
         }
@@ -463,7 +406,6 @@
                     </div>
 
                     <div class="status-badge ${statusClass}" style="justify-content: center; margin: 24px 0; color: ${statusColor}">
-                        <span class="status-dot" style="background: ${statusColor}"></span>
                         <span>Status: ${data.status.replace('_', ' ').toUpperCase()}</span>
                     </div>
                 </div>
@@ -554,7 +496,7 @@
                 input: textInput.substring(0, 150) + (textInput.length > 150 ? '...' : ''),
                 output: textOutput.substring(0, 150) + (textOutput.length > 150 ? '...' : ''),
                 fullOutput: textOutput,
-                date: new Date().toLocaleTimeString()
+                date: new Date().toLocaleString(),
             };
             actHistory.unshift(entry);
             if (actHistory.length > 15) actHistory.pop(); // Keep last 15
@@ -1135,7 +1077,7 @@
                 return;
             }
 
-            showLoading('🧠 Running full 4-step workflow...\\n1. Generating plagiarized version...');
+            showLoading('🧠 Running full 4-step workflow...\nGenerating plagiarized version...');
 
             try {
                 const response = await fetch('/api/auto_plag', {
@@ -1146,6 +1088,9 @@
                 const data = await response.json();
                 if (response.ok) {
                     renderAutoResults(data);
+                    if (data.reconstructed_text) {
+                        saveToHistory('Auto Workflow', data.detection.overall_score, cleanText, data.reconstructed_text);
+                    }
                 } else {
                     showError(data.error || 'Auto workflow failed');
                 }
@@ -1159,6 +1104,7 @@
             const meaningPreserved = data.similarity_check.meaning_preserved_pct;
             const color = getSeverityColor(data.detection.severity);
             const gradient = getSeverityGradient(data.detection.severity);
+            const hasSourceRewrite = data.sentence_analysis.some(s => s.rewrite && s.rewrite.rewrite_method === 'source');
 
             document.getElementById('results-content').innerHTML = `
                 <div class="results-card fade-in">
@@ -1212,6 +1158,7 @@
                         </div>
                         <div class="text-step reconstructed-text">
                             <h4>Step 3: System Reconstruction</h4>
+                            <p class="reconstruction-note">${hasSourceRewrite ? 'Reconstructed from matched source sentence for better accuracy.' : 'Reconstructed clean text.'}</p>
                             <p>${escapeHtml(data.reconstructed_text)}</p>
                             <button class="btn-copy" onclick="copyToClipboard('${escapeForJs(data.reconstructed_text)}', this)">Copy Clean</button>
                         </div>
