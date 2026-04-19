@@ -655,6 +655,25 @@
             }
         }
 
+        function toggleSentenceText(button) {
+            const row = button.closest('.mini-sentence-row');
+            if (!row) return;
+            const preview = row.querySelector('.sentence-preview');
+            const full = row.querySelector('.sentence-full');
+            if (!preview || !full) return;
+
+            const expanded = !full.classList.contains('hidden');
+            if (expanded) {
+                preview.classList.remove('hidden');
+                full.classList.add('hidden');
+                button.textContent = 'Read more';
+            } else {
+                preview.classList.add('hidden');
+                full.classList.remove('hidden');
+                button.textContent = 'Show less';
+            }
+        }
+
         function renderCompareResults(data) {
             const color = getSeverityColor(data.severity);
             const gradient = getSeverityGradient(data.severity);
@@ -1174,17 +1193,24 @@
                     <!-- Sentence Breakdown (Condensed) -->
                     <div class="sentences-section">
                         <h3>Sentence Analysis (${data.sentence_analysis.length} sentences)</h3>
-                        ${data.sentence_analysis.slice(0, 5).map((s, i) => `
-                            <div class="mini-sentence-row">
-                                <span class="sentence-number">#${i + 1}</span>
-                                <span class="sentence-text">${escapeHtml(s.sentence.slice(0, 50))}...</span>
-                                <span class="sim-badge">${(s.similarity * 100).toFixed(0)}%</span>
-                                <span class="plag-badge ${s.is_plagiarized ? 'plag-yes' : 'plag-no'}">
-                                    ${s.is_plagiarized ? 'Plagiarized' : 'Clean'}
-                                </span>
-                            </div>
-                        `).join('')}
-                        ${data.sentence_analysis.length > 5 ? '<p class="more-sentences">... and more</p>' : ''}
+                        ${data.sentence_analysis.map((s, i) => {
+                const isLong = s.sentence.length > 72;
+                const previewText = isLong ? `${s.sentence.slice(0, 72)}...` : s.sentence;
+                return `
+                                <div class="mini-sentence-row">
+                                    <span class="sentence-number">#${i + 1}</span>
+                                    <div class="sentence-content">
+                                        <span class="sentence-text sentence-preview">${escapeHtml(previewText)}</span>
+                                        ${isLong ? `<span class="sentence-text sentence-full hidden">${escapeHtml(s.sentence)}</span>` : ''}
+                                    </div>
+                                    ${isLong ? `<button class="read-more-btn" type="button" onclick="toggleSentenceText(this)">Read more</button>` : ''}
+                                    <span class="sim-badge">${(s.similarity * 100).toFixed(0)}%</span>
+                                    <span class="plag-badge ${s.is_plagiarized ? 'plag-yes' : 'plag-no'}">
+                                        ${s.is_plagiarized ? 'Plagiarized' : 'Clean'}
+                                    </span>
+                                </div>
+                            `;
+            }).join('')}
                     </div>
                 </div>
             `;
