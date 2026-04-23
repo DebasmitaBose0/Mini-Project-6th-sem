@@ -1,25 +1,20 @@
-# PlagiarismAI — Mini Project
+# PlagiarismAI — Premium AI Assistant
 
-A polished, end-to-end plagiarism detection and rewrite assistant built for academic authenticity evaluation and writing support. This repository combines a Flask, HTML, CSS ans JS web application with dataset generation utilities and a model training pipeline, making it easy to run, retrain, and extend.
+A polished, enterprise-grade plagiarism detection and rewrite assistant built for academic authenticity and advanced linguistic reconstruction. This project features a sophisticated Flask-driven backend paired with a premium, glassmorphism-inspired frontend.
 
 **Authors:** Manisha, Joita, Debasmita, Suchitra
 
 ---
 
-## 🌟 Project Overview
+## 🌟 Premium Features
 
-`PlagiarismAI` is designed to:
-- detect text similarity and plagiarism using a trained classifier
-- analyze sentence-level and corpus-level similarity
-- generate rewritten text that preserves meaning while reducing plagiarism risk
-- provide a responsive browser UI for quick review, comparison, and history
-- show expandable sentence analysis with "Read more" toggles for full sentence detail
-
-The core components include:
-- `plagiarism_app/` — Flask web application, API endpoints, and frontend UI
-- `plagiarism_app/train_model.py` — training script for model artifacts
-- `plagiarism_app/models/` — serialized model, vectorizer, encoder, and metadata
-- dataset and generation scripts for experimentation and retraining
+`PlagiarismAI` provides a state-of-the-art experience with:
+- **Full Auto Workflow**: A 4-step automated pipeline that generates plagiarism, detects it, reconstructs clean text, and verifies meaning preservation.
+- **Deep Neural Analysis**: Multi-step loading sequences showing real-time decomposition, semantic vector scanning, and cross-referencing.
+- **Advanced Rewriting Engine**: Adjustable rewrite strength (Low, Medium, Aggressive) and specialized modes for **Removing Plagiarism** or **Humanizing AI Text**.
+- **Human-Like Reconstruction**: Preserves semantic integrity with a target meaning match of 90%+.
+- **Activity History**: Local storage integration to track your previous scans and rewrites.
+- **Professional UI**: Glassmorphism design, pulsing preloader, and high-performance top-bar progress indicators.
 
 ---
 
@@ -27,7 +22,7 @@ The core components include:
 
 Recommended Python version: `3.10+`
 
-Install the main dependencies before running the app:
+Install the core dependencies:
 
 ```bash
 python -m venv .venv
@@ -35,15 +30,17 @@ source .venv/Scripts/activate  # Windows PowerShell: .\.venv\Scripts\Activate.ps
 pip install flask pandas numpy scipy scikit-learn joblib
 ```
 
-If you want optional OpenAI rewriting support, also install:
+For advanced rewriting (OpenAI/Gemini support), create a `.env` file in the `plagiarism_app/` directory:
 
-```bash
-pip install openai
+```text
+OPENAI_API_KEY=your_key_here
+GROQ_API_KEY=your_key_here
+GEMINI_API_KEY=your_key_here
 ```
 
 ---
 
-## 🚀 Run the Application:
+## 🚀 Run the Application
 
 Start the Flask app from the `plagiarism_app` folder:
 
@@ -52,43 +49,25 @@ cd plagiarism_app
 python app.py
 ```
 
-Then open your browser at:
+Access the dashboard at: `http://localhost:5000`
 
-```text
-http://localhost:5000
-```
-
-> Note: The app expects model artifacts in `plagiarism_app/models/`.
->
-> Tip: In the sentence analysis panel, long sentences are shown as previews with a `Read more` button so you can expand them fully.
+> **Note**: The app initializes with a professional neural engine preloader. During analysis, you can follow the progress through the dynamic multi-step status track.
 
 ---
 
-## 🧠 Model Training
+## 🧠 Model & Training
 
-The training script creates the classifier pipeline and saves required artifacts for the web app.
+The system uses a TF-IDF + Logistic Regression pipeline trained on **1,000,000+** samples for high-accuracy detection.
 
-### Saved artifacts
+### Training Artifacts (`plagiarism_app/models/`)
+- `plagiarism_model.pkl` — Trained classifier
+- `tfidf_vectorizer.pkl` — Feature extractor
+- `model_metadata.pkl` — Accuracy and F1 metrics displayed on the dashboard
 
-- `plagiarism_model.pkl` — trained classifier model
-- `tfidf_vectorizer.pkl` — TF-IDF vectorizer
-- `label_encoder.pkl` — label encoder
-- `model_metadata.pkl` — training summary and metadata
-
-### Train with a dataset
-
+### Retraining
 ```bash
-cd plagiarism_app
-python train_model.py
+python train_model.py --sample 500000
 ```
-
-If you want to train on a smaller sample for faster iteration:
-
-```bash
-python train_model.py --sample 200000
-```
-
-The script auto-detects available dataset files if the default path is missing.
 
 ---
 
@@ -96,51 +75,21 @@ The script auto-detects available dataset files if the default path is missing.
 
 This repository includes tools for generating training data and testing rewrite behavior.
 
-### `generate_dataset.py`
-
-Generates the default `dataset.csv` file used for training and experimentation.
-
-```bash
-python generate_dataset.py
-```
-
-### `generate_paragraph_dataset.py`
-
-Creates paragraph-level datasets for broader similarity and rewrite testing.
-
-```bash
-python generate_paragraph_dataset.py
-```
-
-### `rewrite_para.py`
-
-Runs a local rewrite test outside of the Flask UI.
-
-```bash
-python rewrite_para.py
-```
+- `generate_million.py` — Script to build the 1M+ sample dataset.
+- `generate_paragraph_dataset.py` — Creates paragraph-level datasets for broader similarity testing.
+- `rewrite_para.py` — Runs a local rewrite test outside of the Flask UI.
 
 ---
 
 ## 🧩 Repository Structure
 
-- `dataset.csv` — generated training dataset
-- `paragraph_dataset*.csv` — paragraph-based dataset variants
-- `plagiarism_app/` — web app, model training, and UI files
-- `plagiarism_app/models/` — trained model artifacts
-- `README.md` — project documentation
-
----
-
-## 📌 Usage Notes
-
-- Keep the necessary model files in `plagiarism_app/models/` for the web app to work.
-- If you remove the model artifacts, rerun `python train_model.py`.
-- Configure `OPENAI_API_KEY` only if you want optional GPT-based rewrite enhancements.
+- `plagiarism_app/` — Core application (Flask, Templates, Static)
+- `plagiarism_app/paraphrase_engine.py` — The "brain" behind linguistic reconstruction
+- `plagiarism_app/models/` — Serialized AI weights and metadata
+- `dataset.csv` — Generated training dataset
+- `.gitignore` — Configured to protect `.env` and local caches
 
 ---
 
 ## 📄 License
-
 This project is licensed under the MIT License. See `LICENSE` for details.
-
