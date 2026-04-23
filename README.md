@@ -1,6 +1,6 @@
 # PlagiarismAI — Mini Project
 
-A polished, end-to-end plagiarism detection and rewrite assistant built for academic authenticity evaluation and writing support. This repository combines a Flask web application with dataset generation utilities and a model training pipeline, making it easy to run, retrain, and extend.
+A polished, end-to-end plagiarism detection and rewrite assistant built for academic authenticity evaluation and writing support. This repository combines a Flask, HTML, CSS ans JS web application with dataset generation utilities and a model training pipeline, making it easy to run, retrain, and extend.
 
 **Authors:** Manisha, Joita, Debasmita, Suchitra
 
