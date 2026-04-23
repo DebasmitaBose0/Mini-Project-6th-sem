@@ -1,15 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
-  <rect width="64" height="64" rx="12" fill="#111827" />
-  <path d="M12 10h28a6 6 0 0 1 6 6v36a6 6 0 0 1-6 6H12a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6Z" fill="#e2e8f0" stroke="#0f172a" stroke-width="3" />
-  <path d="M38 10V20a6 6 0 0 0 6 6h10" fill="#cbd5e1" />
-  <path d="M38 10h10v10" fill="none" stroke="#0f172a" stroke-width="3" />
-  <path d="M20 20h18M20 28h18M20 36h12" stroke="#334155" stroke-width="3" stroke-linecap="round" />
-  <g transform="translate(10 34)">
-    <path d="M22 0c-8 0-14 6-14 14s6 14 14 14 14-6 14-14-6-14-14-14Z" fill="#f8fafc" stroke="#000" stroke-width="3" />
-    <circle cx="14" cy="12" r="3" fill="#000" />
-    <circle cx="30" cy="12" r="3" fill="#000" />
-    <path d="M18 26c1 2 4 2 5 0" stroke="#000" stroke-width="3" stroke-linecap="round" />
-    <path d="M10 14l32 32" stroke="#ef4444" stroke-width="5" stroke-linecap="round" />
-  </g>
-  <path d="M28 8h20" stroke="#0f172a" stroke-width="3" stroke-linecap="round" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded background with brand gradient -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- Subtle glass shine -->
+  <rect width="64" height="32" rx="14" fill="url(#shine)"/>
+
+  <!-- Shield shape (represents protection/originality) -->
+  <path d="M32 10 L48 18 L48 34 C48 44 40 50 32 54 C24 50 16 44 16 34 L16 18 Z"
+        fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="round" opacity="0.95"/>
+
+  <!-- Checkmark inside shield (plagiarism cleared) -->
+  <path d="M23 32 L29 38 L41 24"
+        fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Small "AI" text at bottom -->
+  <text x="32" y="60" text-anchor="middle" font-family="Inter, Arial, sans-serif"
+        font-size="7" font-weight="800" fill="rgba(255,255,255,0.8)" letter-spacing="1.5">AI</text>
 </svg>
