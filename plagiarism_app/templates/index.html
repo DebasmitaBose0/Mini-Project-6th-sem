@@ -17,13 +17,32 @@
 </head>
 
 <body>
+    <!-- Professional Preloader -->
+    <div id="preloader" class="preloader-overlay">
+        <div class="preloader-content">
+            <div class="minimal-spinner"></div>
+            <div class="preloader-logo-wrap">
+                <span class="logo-text">Plagiarism<span class="logo-accent">AI</span></span>
+            </div>
+            <p class="loading-text" id="preloader-text">Initializing Neural Engine...</p>
+        </div>
+    </div>
+    
+    <!-- Top Progress Bar -->
+    <div id="top-loader" class="top-progress-bar"></div>
+
     <!-- Dashboard Wrapper -->
     <div class="app-wrapper">
 
         <!-- Sidebar History -->
-        <aside class="history-sidebar">
+        <aside class="history-sidebar" id="history-sidebar">
             <div class="sidebar-header">
-                <h3>Activity History</h3>
+                <h3 class="history-title">Activity History</h3>
+                <button onclick="toggleSidebar()" class="sidebar-toggle-btn" title="Toggle History">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
             </div>
             <div class="history-list" id="history-list">
                 <!-- History items injected here -->
@@ -128,6 +147,30 @@
                             </svg>
                             Bulk Scan
                         </button>
+                    </div>
+                </section>
+
+                <!-- Global Settings -->
+                <section class="settings-section" id="global-settings" style="margin-bottom: 32px;">
+                    <div class="settings-panel">
+                        <div class="setting-group">
+                            <label class="setting-label">Rewrite Strength</label>
+                            <div class="slider-container">
+                                <input type="range" id="rewrite-strength" min="1" max="3" value="2" class="slider" oninput="updateStrengthLabel(this.value)">
+                                <div class="slider-labels">
+                                    <span id="strength-label-1">Low (20%)</span>
+                                    <span id="strength-label-2" class="active">Medium (50%)</span>
+                                    <span id="strength-label-3">Aggressive (80%)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-label">Target Mode</label>
+                            <div class="mode-buttons">
+                                <button class="btn-mode active" id="mode-plag" onclick="setRewriteMode('remove_plagiarism')">Remove Plagiarism</button>
+                                <button class="btn-mode" id="mode-humanize" onclick="setRewriteMode('humanize_ai')">Humanize AI Text</button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -281,9 +324,53 @@
         // ─────────────────────────────────────────────
         let currentMode = 'auto';  // Default to new Auto Mode
         let actHistory = JSON.parse(localStorage.getItem('plagiarismHistory') || '[]');
+        
+        // New Settings State
+        let rewriteStrength = 2; // 1=Low, 2=Medium, 3=Aggressive
+        let rewriteTarget = 'remove_plagiarism'; // or 'humanize_ai'
+
+        function updateStrengthLabel(value) {
+            rewriteStrength = parseInt(value);
+            document.getElementById('strength-label-1').classList.toggle('active', value == 1);
+            document.getElementById('strength-label-2').classList.toggle('active', value == 2);
+            document.getElementById('strength-label-3').classList.toggle('active', value == 3);
+        }
+
+        function setRewriteMode(mode) {
+            rewriteTarget = mode;
+            document.getElementById('mode-plag').classList.toggle('active', mode === 'remove_plagiarism');
+            document.getElementById('mode-humanize').classList.toggle('active', mode === 'humanize_ai');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('history-sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
 
         window.onload = () => {
             renderHistory();
+            
+            // Professional Preloader Sequence
+            const preloaderText = document.getElementById('preloader-text');
+            const phases = ["Optimizing weights...", "Loading linguistic maps...", "Readying AI Engine..."];
+            let pIdx = 0;
+            const phaseInterval = setInterval(() => {
+                if(preloaderText && pIdx < phases.length) {
+                    preloaderText.textContent = phases[pIdx++];
+                }
+            }, 600);
+
+            setTimeout(() => {
+                clearInterval(phaseInterval);
+                const preloader = document.getElementById('preloader');
+                if (preloader) {
+                    preloader.style.opacity = '0';
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                        preloader.classList.add('hidden');
+                    }, 600);
+                }
+            }, 2200); 
         };
 
         // ─────────────────────────────────────────────
@@ -353,6 +440,21 @@
         }
 
         function renderVerifyResults(data) {
+            // Clear analysis intervals
+            const resultsContent = document.getElementById('results-content');
+            if (resultsContent && resultsContent.dataset.stepIntervalId) {
+                clearInterval(resultsContent.dataset.stepIntervalId);
+            }
+            
+            // Hide top loader
+            const topBar = document.getElementById('top-loader');
+            if (topBar) {
+                if (topBar.dataset.intervalId) clearInterval(topBar.dataset.intervalId);
+                topBar.classList.remove('active');
+                topBar.style.width = '100%';
+                setTimeout(() => { topBar.style.width = '0%'; }, 500);
+            }
+
             const color = getSeverityColor(data.current_severity);
             const gradient = getSeverityGradient(data.current_severity);
             const statusClass = data.status === 'meaning_preserved' ? 'status-online' :
@@ -561,7 +663,7 @@
                 const response = await fetch('/api/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text1, text2 }),
+                    body: JSON.stringify({ text1, text2, strength: rewriteStrength, mode: rewriteTarget }),
                 });
                 const data = await response.json();
                 if (response.ok) {
@@ -590,7 +692,7 @@
                 const response = await fetch('/api/compare', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, corpus }),
+                    body: JSON.stringify({ text, corpus, strength: rewriteStrength, mode: rewriteTarget }),
                 });
                 const data = await response.json();
                 if (response.ok) {
@@ -608,26 +710,89 @@
         // Rendering
         // ─────────────────────────────────────────────
         function showLoading(message = 'Analyzing text similarity...') {
+            const topBar = document.getElementById('top-loader');
+            if (topBar) {
+                topBar.classList.add('active');
+                topBar.style.width = '15%';
+                
+                // Professional step-up progress
+                let currentWidth = 15;
+                const progressInterval = setInterval(() => {
+                    if (currentWidth < 85) {
+                        currentWidth += Math.random() * 5;
+                        topBar.style.width = `${currentWidth}%`;
+                    } else {
+                        clearInterval(progressInterval);
+                    }
+                }, 400);
+                topBar.dataset.intervalId = progressInterval;
+            }
+
             const section = document.getElementById('results-section');
             section.classList.remove('hidden');
+            
+            const loadingSteps = [
+                "Decomposing sentences...",
+                "Scanning semantic vectors...",
+                "Cross-referencing datasets...",
+                "Calculating similarity scores...",
+                "Generating intelligent rewrites..."
+            ];
+            
             document.getElementById('results-content').innerHTML = `
-                <div class="loading-container">
-                    <div class="loading-spinner">
-                        <div class="spinner-ring"></div>
-                        <div class="spinner-ring ring-2"></div>
-                        <div class="spinner-ring ring-3"></div>
+                <div class="loading-container fade-in">
+                    <div class="minimal-spinner"></div>
+                    <p class="loading-text" id="analysis-status">${message}</p>
+                    <p class="loading-subtext">Our AI is processing your request using 1M+ samples.</p>
+                    <div class="loading-steps-track">
+                        <div class="loading-step active" id="step-0"></div>
+                        <div class="loading-step" id="step-1"></div>
+                        <div class="loading-step" id="step-2"></div>
+                        <div class="loading-step" id="step-3"></div>
+                        <div class="loading-step" id="step-4"></div>
                     </div>
-                    <p class="loading-text">${message}</p>
                 </div>
             `;
+            
+            let stepIdx = 0;
+            const stepInterval = setInterval(() => {
+                if (stepIdx < loadingSteps.length) {
+                    const statusEl = document.getElementById('analysis-status');
+                    if (statusEl) statusEl.textContent = loadingSteps[stepIdx];
+                    
+                    const stepEl = document.getElementById(`step-${stepIdx}`);
+                    if (stepEl) stepEl.classList.add('completed');
+                    
+                    stepIdx++;
+                    const nextStepEl = document.getElementById(`step-${stepIdx}`);
+                    if (nextStepEl) nextStepEl.classList.add('active');
+                } else {
+                    clearInterval(stepInterval);
+                }
+            }, 800);
+            
+            document.getElementById('results-content').dataset.stepIntervalId = stepInterval;
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function showError(message) {
+            // Clear analysis intervals
+            const resultsContent = document.getElementById('results-content');
+            if (resultsContent && resultsContent.dataset.stepIntervalId) {
+                clearInterval(resultsContent.dataset.stepIntervalId);
+            }
+            
+            const topBar = document.getElementById('top-loader');
+            if (topBar) {
+                if (topBar.dataset.intervalId) clearInterval(topBar.dataset.intervalId);
+                topBar.style.width = '100%';
+                setTimeout(() => { if (topBar) topBar.style.width = '0%'; }, 500);
+            }
+
             const section = document.getElementById('results-section');
             section.classList.remove('hidden');
             document.getElementById('results-content').innerHTML = `
-                <div class="error-card">
+                <div class="error-card fade-in">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="15" y1="9" x2="9" y2="15"/>
@@ -676,6 +841,20 @@
         }
 
         function renderCompareResults(data) {
+            // Clear analysis intervals
+            const resultsContent = document.getElementById('results-content');
+            if (resultsContent && resultsContent.dataset.stepIntervalId) {
+                clearInterval(resultsContent.dataset.stepIntervalId);
+            }
+            
+            // Hide top loader
+            const topBar = document.getElementById('top-loader');
+            if (topBar) {
+                if (topBar.dataset.intervalId) clearInterval(topBar.dataset.intervalId);
+                topBar.style.width = '100%';
+                setTimeout(() => { if (topBar) topBar.style.width = '0%'; }, 500);
+            }
+
             const color = getSeverityColor(data.severity);
             const gradient = getSeverityGradient(data.severity);
 
@@ -695,12 +874,28 @@
                            </div>`
                         : '';
 
+                    const simBadge = isPlag 
+                        ? `<span class="sim-badge">Similarity: ${(s.rewrite.source_similarity_before * 100).toFixed(0)}% &rarr; ${(s.rewrite.source_similarity_after * 100).toFixed(0)}%</span>`
+                        : `<span class="sim-badge">Similarity: ${(s.rewrite.source_similarity_before * 100).toFixed(0)}%</span>`;
+
+                    let highlightedRewritten = escapeHtml(s.rewrite.rewritten || "");
+                    if (s.rewrite.changes_made) {
+                        s.rewrite.changes_made.forEach(c => {
+                            const match = c.match(/'(.*?)' → '(.*?)' \(synonym\)/);
+                            if (match) {
+                                const newWord = match[2];
+                                const regex = new RegExp(`\\b${newWord}\\b`, 'gi');
+                                highlightedRewritten = highlightedRewritten.replace(regex, `<span class="highlight-word">$&</span>`);
+                            }
+                        });
+                    }
+
                     return `
                         <div class="rewrite-card fade-in ${isPlag ? 'rewrite-card-flagged' : 'rewrite-card-clean'}" style="animation-delay: ${i * 0.1}s">
                             <div class="rewrite-card-header">
                                 <span class="sentence-number">#${i + 1}</span>
                                 ${statusIcon}
-                                <span class="sim-badge">Similarity: ${(s.similarity * 100).toFixed(0)}%</span>
+                                ${simBadge}
                             </div>
                             <div class="rewrite-card-body">
                                 <div class="rewrite-row">
@@ -720,7 +915,7 @@
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                             <span>Human-Like Rewrite</span>
                                         </div>
-                                        <p class="rewrite-text text-clean">${escapeHtml(s.rewrite.rewritten)}</p>
+                                        <p class="rewrite-text text-clean">${highlightedRewritten}</p>
                                         ${changesHtml}
                                     </div>
                                     ` : ''}
@@ -763,7 +958,7 @@
                             </div>
                             <div class="metric-info" style="flex: 1;">
                                 <span class="metric-value">${(data.rewrite_similarity * 100).toFixed(1)}%</span>
-                                <span class="metric-label">Meaning Similarity (Plagiarized vs Rewritten)</span>
+                                <span class="metric-label">Original Meaning Match</span>
                             </div>
                         </div>
                         <div class="metric-card" style="border-left: 4px solid #8b5cf6;">
@@ -773,8 +968,8 @@
                                 </svg>
                             </div>
                             <div class="metric-info" style="flex: 1;">
-                                <span class="metric-value">${(data.source_rewrite_similarity * 100).toFixed(1)}%</span>
-                                <span class="metric-label">Similarity to Source (Original 1st Text)</span>
+                                <span class="metric-value">${Math.max(0, data.overall_score - data.recheck_score).toFixed(1)}%</span>
+                                <span class="metric-label">Plagiarism Reduced</span>
                             </div>
                         </div>
                         <div class="metric-card" style="border-left: 4px solid #22c55e;">
@@ -784,8 +979,8 @@
                                 </svg>
                             </div>
                             <div class="metric-info" style="flex: 1;">
-                                <span class="metric-value">${data.recheck_score}%</span>
-                                <span class="metric-label">New Plagiarism Score (After Rewrite)</span>
+                                <span class="metric-value">${data.humanization_score || 0}%</span>
+                                <span class="metric-label">Humanization Score</span>
                             </div>
                         </div>
                     </div>
@@ -905,6 +1100,21 @@
         }
 
         function renderCorpusResults(data) {
+            // Clear analysis intervals
+            const resultsContent = document.getElementById('results-content');
+            if (resultsContent && resultsContent.dataset.stepIntervalId) {
+                clearInterval(resultsContent.dataset.stepIntervalId);
+            }
+            
+            // Hide top loader
+            const topBar = document.getElementById('top-loader');
+            if (topBar) {
+                if (topBar.dataset.intervalId) clearInterval(topBar.dataset.intervalId);
+                topBar.classList.remove('active');
+                topBar.style.width = '100%';
+                setTimeout(() => { topBar.style.width = '0%'; }, 500);
+            }
+
             const color = getSeverityColor(data.overall_severity);
             const gradient = getSeverityGradient(data.overall_severity);
 
@@ -926,6 +1136,25 @@
                        </div>`
                     : '';
 
+                const simBadge = isPlag && r.rewrite
+                    ? `<span class="sentence-score" style="color: ${sentColor}">${(r.rewrite.source_similarity_before * 100).toFixed(0)}% &rarr; ${(r.rewrite.source_similarity_after * 100).toFixed(0)}%</span>`
+                    : `<span class="sentence-score" style="color: ${sentColor}">${r.match_score}%</span>`;
+
+                let highlightedRewritten = "";
+                if (r.rewrite && r.rewrite.rewritten) {
+                    highlightedRewritten = escapeHtml(r.rewrite.rewritten);
+                    if (r.rewrite.changes_made) {
+                        r.rewrite.changes_made.forEach(c => {
+                            const match = c.match(/'(.*?)' → '(.*?)' \(synonym\)/);
+                            if (match) {
+                                const newWord = match[2];
+                                const regex = new RegExp(`\\b${newWord}\\b`, 'gi');
+                                highlightedRewritten = highlightedRewritten.replace(regex, `<span class="highlight-word">$&</span>`);
+                            }
+                        });
+                    }
+                }
+
                 return `
                     <div class="rewrite-card fade-in ${isPlag ? 'rewrite-card-flagged' : 'rewrite-card-clean'}" style="animation-delay: ${i * 0.08}s">
                         <div class="rewrite-card-header">
@@ -934,7 +1163,15 @@
                             <div class="sentence-score-bar">
                                 <div class="score-bar-fill" style="width: ${r.match_score}%; background: ${sentColor}"></div>
                             </div>
-                            <span class="sentence-score" style="color: ${sentColor}">${r.match_score}%</span>
+                            <div class="sentence-metrics-badges" style="display: flex; gap: 8px; align-items: center;">
+                                ${simBadge}
+                                ${r.rewrite && r.rewrite.meaning_preserved ? `
+                                    <span class="meaning-badge" title="How similar this is to your input sentence">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                        ${(r.rewrite.meaning_preserved * 100).toFixed(0)}% Match
+                                    </span>
+                                ` : ''}
+                            </div>
                         </div>
                         <div class="rewrite-card-body">
                             <div class="rewrite-row">
@@ -960,7 +1197,7 @@
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                         <span>Human-Like Rewrite</span>
                                     </div>
-                                    <p class="rewrite-text text-clean">${escapeHtml(r.rewrite.rewritten)}</p>
+                                    <p class="rewrite-text text-clean">${highlightedRewritten}</p>
                                     ${changesHtml}
                                 </div>
                                 ` : ''}
@@ -1016,7 +1253,7 @@
                             </div>
                             <div class="metric-info" style="flex: 1;">
                                 <span class="metric-value">${(data.rewrite_similarity * 100).toFixed(1)}%</span>
-                                <span class="metric-label">Meaning Similarity (Original vs Rewritten)</span>
+                                <span class="metric-label">Original Meaning Match</span>
                             </div>
                         </div>
                         <div class="metric-card" style="border-left: 4px solid #8b5cf6;">
@@ -1026,8 +1263,8 @@
                                 </svg>
                             </div>
                             <div class="metric-info" style="flex: 1;">
-                                <span class="metric-value">${(data.source_rewrite_similarity * 100).toFixed(1)}%</span>
-                                <span class="metric-label">Similarity to Source (Reference Text)</span>
+                                <span class="metric-value">${Math.max(0, data.overall_score - data.recheck_score).toFixed(1)}%</span>
+                                <span class="metric-label">Plagiarism Reduced</span>
                             </div>
                         </div>
                         <div class="metric-card" style="border-left: 4px solid #22c55e;">
@@ -1037,8 +1274,8 @@
                                 </svg>
                             </div>
                             <div class="metric-info" style="flex: 1;">
-                                <span class="metric-value">${data.recheck_score}%</span>
-                                <span class="metric-label">New Plagiarism Score (After Rewrite)</span>
+                                <span class="metric-value">${data.humanization_score || 0}%</span>
+                                <span class="metric-label">Humanization Score</span>
                             </div>
                         </div>
                     </div>
@@ -1125,7 +1362,7 @@
                 const response = await fetch('/api/auto_plag', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clean_text: cleanText }),
+                    body: JSON.stringify({ clean_text: cleanText, strength: rewriteStrength, mode: rewriteTarget }),
                 });
                 const data = await response.json();
                 if (response.ok) {
@@ -1142,6 +1379,20 @@
         }
 
         function renderAutoResults(data) {
+            // Clear analysis intervals
+            const resultsContent = document.getElementById('results-content');
+            if (resultsContent && resultsContent.dataset.stepIntervalId) {
+                clearInterval(resultsContent.dataset.stepIntervalId);
+            }
+            
+            // Hide top loader
+            const topBar = document.getElementById('top-loader');
+            if (topBar) {
+                if (topBar.dataset.intervalId) clearInterval(topBar.dataset.intervalId);
+                topBar.style.width = '100%';
+                setTimeout(() => { if (topBar) topBar.style.width = '0%'; }, 500);
+            }
+
             const plagRatio = data.simulation_stats.plagiarism_ratio;
             const meaningPreserved = data.similarity_check.meaning_preserved_pct;
             const color = getSeverityColor(data.detection.severity);
@@ -1205,11 +1456,11 @@
                             <button class="btn-copy" onclick="copyToClipboard('${escapeForJs(data.reconstructed_text)}', this)">Copy Clean</button>
                         </div>
                         <div class="text-step verify-text">
-                            <h4>Step 4: Similarity Check</h4>
+                            <h4>Step 4: Explain Changes & Similarity Check</h4>
                             <div class="verify-stats">
-                                <span>Meaning Preserved: <strong>${meaningPreserved}%</strong></span>
-                                <span>Similarity to Source: <strong>${data.similarity_check.source_rewrite_similarity}%</strong></span>
-                                <span>Status: <strong>${data.similarity_check.status.toUpperCase()}</strong></span>
+                                <span>Original Meaning Match: <strong>${meaningPreserved}%</strong></span>
+                                <span>Plagiarism Reduced: <strong>${Math.max(0, plagRatio - (data.similarity_check.source_rewrite_similarity)).toFixed(1)}%</strong></span>
+                                <span>Humanization Score: <strong>${data.similarity_check.humanization_score || 0}%</strong></span>
                             </div>
                         </div>
                     </div>
