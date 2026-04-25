@@ -20,7 +20,9 @@
     <!-- Professional Preloader -->
     <div id="preloader" class="preloader-overlay">
         <div class="preloader-content">
-            <div class="minimal-spinner"></div>
+            <div class="minimal-spinner">
+                <div class="minimal-spinner-core"></div>
+            </div>
             <div class="preloader-logo-wrap">
                 <span class="logo-text">Plagiarism<span class="logo-accent">AI</span></span>
             </div>
@@ -413,19 +415,26 @@
                 if(preloaderText && pIdx < phases.length) {
                     preloaderText.textContent = phases[pIdx++];
                 }
-            }, 600);
+            }, 1500);
 
             setTimeout(() => {
                 clearInterval(phaseInterval);
                 const preloader = document.getElementById('preloader');
                 if (preloader) {
                     preloader.style.opacity = '0';
+                    
+                    // Fade in main content smoothly
+                    const appWrapper = document.querySelector('.app-wrapper');
+                    if (appWrapper) {
+                        appWrapper.classList.add('fade-in-page');
+                    }
+
                     setTimeout(() => {
                         preloader.style.display = 'none';
                         preloader.classList.add('hidden');
                     }, 600);
                 }
-            }, 2200); 
+            }, 5000); 
         };
 
         // ─────────────────────────────────────────────
@@ -722,8 +731,10 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    renderCompareResults(data);
-                    if (data.rewritten_text) saveToHistory('Text-to-Text', data.overall_score, text2, data.rewritten_text);
+                    setTimeout(() => {
+                        renderCompareResults(data);
+                        if (data.rewritten_text) saveToHistory('Text-to-Text', data.overall_score, text2, data.rewritten_text);
+                    }, 4000);
                 } else {
                     showError(data.error || 'An error occurred');
                 }
@@ -751,8 +762,10 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    renderCorpusResults(data);
-                    if (data.rewritten_text) saveToHistory('Corpus', data.overall_score, text, data.rewritten_text);
+                    setTimeout(() => {
+                        renderCorpusResults(data);
+                        if (data.rewritten_text) saveToHistory('Corpus', data.overall_score, text, data.rewritten_text);
+                    }, 4000);
                 } else {
                     showError(data.error || 'An error occurred');
                 }
@@ -796,7 +809,9 @@
             
             document.getElementById('results-content').innerHTML = `
                 <div class="loading-container fade-in">
-                    <div class="minimal-spinner"></div>
+                    <div class="minimal-spinner">
+                        <div class="minimal-spinner-core"></div>
+                    </div>
                     <p class="loading-text" id="analysis-status">${message}</p>
                     <p class="loading-subtext">Our AI is processing your request using 1M+ samples.</p>
                     <div class="loading-steps-track">
@@ -1421,10 +1436,12 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    renderAutoResults(data);
-                    if (data.reconstructed_text) {
-                        saveToHistory('Auto Workflow', data.detection.overall_score, cleanText, data.reconstructed_text);
-                    }
+                    setTimeout(() => {
+                        renderAutoResults(data);
+                        if (data.reconstructed_text) {
+                            saveToHistory('Auto Workflow', data.detection.overall_score, cleanText, data.reconstructed_text);
+                        }
+                    }, 4000);
                 } else {
                     showError(data.error || 'Auto workflow failed');
                 }
