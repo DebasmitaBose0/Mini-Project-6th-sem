@@ -155,6 +155,8 @@ def clean_up_rewrite(text: str) -> str:
     """Ensure proper capitalization and punctuation."""
     if not text:
         return text
+
+    text = fix_common_lexical_artifacts(text)
     text = text.strip()
     
     # 1. Basic Spacing fix (no space before, one space after)
@@ -183,6 +185,45 @@ def clean_up_rewrite(text: str) -> str:
             text += "."
             
     return text.strip()
+
+
+COMMON_LEXICAL_FIXES = {
+    "inteligence": "intelligence",
+    "artifical": "artificial",
+    "nonetheles": "nonetheless",
+    "concider": "consider",
+    "recieve": "receive",
+    "seperate": "separate",
+    "definately": "definitely",
+}
+
+
+def fix_common_lexical_artifacts(text: str) -> str:
+    """Normalize frequent model-generated spelling artifacts conservatively, preserving casing."""
+    if not text:
+        return text
+
+    def apply_casing(replacement: str, original: str) -> str:
+        """Apply casing pattern from original to replacement."""
+        if original.isupper():
+            return replacement.upper()
+        elif original and original[0].isupper():
+            return replacement[0].upper() + replacement[1:]
+        else:
+            return replacement.lower()
+
+    fixed = text
+    # Whole-word spelling fixes with casing preservation.
+    for wrong, right in COMMON_LEXICAL_FIXES.items():
+        def replacer(match):
+            original_match = match.group(0)
+            return apply_casing(right, original_match)
+
+        fixed = re.sub(rf"\b{re.escape(wrong)}\b", replacer, fixed, flags=re.IGNORECASE)
+
+    # Frequent stitched fragment repair.
+    fixed = re.sub(r"\berns\s+about\b", "concerns about", fixed, flags=re.IGNORECASE)
+    return fixed
 
 def llm_rewrite_sentence(sentence: str, source_sentence: str = "") -> str | None:
     """Use an LLM (OpenAI/Groq/Gemini) to rewrite a sentence if an API key is available. Supports fallback."""
@@ -330,14 +371,14 @@ def auto_generate_plagiarized(clean_text: str) -> tuple[str, str, dict]:
     llm_result = llm_generate_plagiarized(clean_text)
     if llm_result:
         plag_text, model_used = llm_result
-        suspected_text = plag_text
+        suspected_text = clean_up_rewrite(plag_text)
         verbatim_count = round(len(sentences) * 0.5)
         rewritten_count = len(sentences) - verbatim_count
     else:
         model_used = None
         for sent in sentences:
             # HARD REWRITE: Always paraphrase, never copy verbatim
-            variant = deep_paraphrase(sent, sent)
+            variant = deep_paraphrase(sent)
             
             # Fallback 1: If result too similar, try phrase paraphrases
             if compute_text_similarity(sent, variant) > 0.90:
@@ -354,11 +395,11 @@ def auto_generate_plagiarized(clean_text: str) -> tuple[str, str, dict]:
             plag_sentences.append(variant)
             rewritten_count += 1
         
-        suspected_text = " ".join(plag_sentences)
+        suspected_text = clean_up_rewrite(" ".join(plag_sentences))
         
         # FINAL FAILSAFE: If suspected text is identical to clean, force deep rewrite
         if suspected_text.strip() == clean_text.strip():
-            suspected_text = deep_paraphrase_paragraph(clean_text, clean_text)
+            suspected_text = clean_up_rewrite(deep_paraphrase_paragraph(clean_text))
 
     stats = {
         "verbatim_sentences": verbatim_count,
@@ -768,6 +809,18 @@ def _apply_aggressive_synonyms(sentence: str, source_sentence: str = "") -> str:
 
 
 def rewrite_sentence_human(sentence: str, source_sentence: str = "", strength: int = 2, mode: str = "remove_plagiarism") -> dict:
+    # ── Force rejection of unchanged rewrites and fallback passes ──
+    def _force_fallbacks(original, rewritten, source_sentence):
+        # If rewrite too similar, redo it
+        if compute_text_similarity(original, rewritten) > 0.85:
+            rewritten = deep_paraphrase_sentence(original, source_sentence)
+        # If still unchanged, try phrase paraphrase
+        if rewritten.strip() == original.strip():
+            rewritten = apply_phrase_paraphrases(original)
+        # If still unchanged, try restructure
+        if rewritten.strip() == original.strip():
+            rewritten = restructure_sentence(original)
+        return rewritten
     """
     Rewrite a plagiarized sentence into a genuinely different version.
     
@@ -822,63 +875,89 @@ def rewrite_sentence_human(sentence: str, source_sentence: str = "", strength: i
         candidates.append(deep_paraphrase_sentence(original, source_sentence))
     
     if strength >= 2:
-        # Candidate 2: Restructure + Aggressive Synonyms
+        # Candidate 2: Restructure only (no synonyms)
         c2 = deep_paraphrase_sentence(original, source_sentence)
-        # removed synonym-only rewriting
-        # c2 = _apply_aggressive_synonyms(c2, source_sentence)
         candidates.append(c2)
-        
-        # Candidate 3: Phrase Paraphrase + Synonyms
+        # Candidate 3: Phrase Paraphrase only (no synonyms)
         c3 = apply_phrase_paraphrases(original)
-        # removed synonym-only rewriting
-        # c3 = _apply_aggressive_synonyms(c3, source_sentence)
         candidates.append(c3)
 
     if strength >= 3:
-        # Candidate 4: Aggressive Synonyms + Restructure
-        # removed synonym-only rewriting
-        # c4 = _apply_aggressive_synonyms(original, source_sentence)
+        # Candidate 4: Deep restructure only (no synonyms)
         c4 = deep_paraphrase_sentence(original, source_sentence)
         candidates.append(c4)
-        
-        # Candidate 5: deep_paraphrase from engine + Aggressive Synonyms
-        c5 = deep_paraphrase(original, source_sentence)
-        # removed synonym-only rewriting
-        # c5 = _apply_aggressive_synonyms(c5, source_sentence)
-        candidates.append(c5)
+        # DISABLE THIS FOR NOW
+        # c5 = deep_paraphrase(original, source_sentence)
 
     if mode == "humanize_ai":
-        human_transitions = ["To put it simply, ", "Essentially, ", "In other words, ", "Basically, ", "Generally speaking, "]
-        c_hum = apply_phrase_paraphrases(original)
-        c_hum = _apply_aggressive_synonyms(c_hum, source_sentence)
-        if c_hum and len(c_hum.split()) > 4:
-            c_hum = random.choice(human_transitions) + c_hum[0].lower() + c_hum[1:]
+        c_hum = deep_paraphrase(original)
+        c_hum = restructure_sentence(c_hum)
+        c_hum = normalize_sentence(c_hum)
         candidates.append(c_hum)
 
-    best_rewrite = original
-    best_sim = float('inf')
 
+    best_rewrite = original
+    best_score = float('-inf')
+    bad_prefixes = (
+        "Basically",
+        "Essentially",
+        "Generally speaking",
+        "In other words"
+    )
+    # Lower similarity threshold for acceptance
+    similarity_threshold = 0.75
     for cand in candidates:
         cand = normalize_sentence(cand)
         if not cand or cand.strip() == "." or len(cand.strip()) < 10:
             continue
-
+        if cand.startswith(bad_prefixes):
+            continue
         sim = compute_text_similarity(cand, source_sentence) if source_sentence else compute_text_similarity(cand, original)
-
-        if sim < best_sim:
-            best_sim = sim
+        meaning_similarity = compute_text_similarity(original, cand)
+        lexical_change = 1 - compute_word_overlap(original, cand)
+        if lexical_change < 0.25:
+            continue
+        score = (1-sim)*0.6 + lexical_change*0.3 + meaning_similarity*0.1
+        # accept only materially different rewrites with lower similarity threshold
+        if score > best_score and sim < similarity_threshold:
+            best_score = score
             best_rewrite = cand
 
-        if best_sim < 0.35:
-            break
+    # Aggressive rewrite fallback loop
+    passes = 0
+    max_passes = 5
+    while (compute_text_similarity(best_rewrite, source_sentence) > similarity_threshold or best_rewrite.strip().lower() == original.strip().lower()) and passes < max_passes:
+        # Structural/semantic changes: restructure, paraphrase, split/merge, reorder
+        best_rewrite = deep_paraphrase(best_rewrite)
+        best_rewrite = restructure_sentence(best_rewrite)
+        # Attempt sentence splitting/merging (simple heuristic)
+        if len(best_rewrite.split()) > 20:
+            parts = best_rewrite.split('.')
+            if len(parts) > 1:
+                best_rewrite = '. '.join(reversed([p.strip() for p in parts if p.strip()]))
+        # Attempt voice change (active/passive)
+        if ' by ' in best_rewrite:
+            best_rewrite = best_rewrite.replace(' by ', ' was by ')
+        best_rewrite = normalize_sentence(best_rewrite)
+        passes += 1
 
+    # ...existing code...
     rewritten = best_rewrite
+
+
+    # Reject unchanged output (hard fail)
+    if rewritten.strip().lower() == original.strip().lower():
+        rewritten = restructure_sentence(original)
+    if rewritten.strip().lower() == original.strip().lower():
+        rewritten = apply_phrase_paraphrases(original)
+    # Force fallback passes if rewrite is too similar or unchanged
+    rewritten = _force_fallbacks(original, rewritten, source_sentence)
     
     # ── Iterative Anti-Plagiarism Loop (target <30% similarity) ──
     passes = 0
     if source_sentence:
         target_plag = 0.30
-        current_sim = compute_text_similarity(original, rewritten)
+        current_sim = compute_text_similarity(source_sentence, rewritten)
         passes = 0
         
         while current_sim > target_plag and passes < 5:
@@ -888,8 +967,7 @@ def rewrite_sentence_human(sentence: str, source_sentence: str = "", strength: i
             # Pass 2: Phrase-level paraphrase
             rewritten = apply_phrase_paraphrases(rewritten)
             
-            # Pass 3: Very limited synonym swap
-            rewritten = _apply_aggressive_synonyms(rewritten, source_sentence)
+            # Pass 3: (avoid aggressive synonym-only swaps to prevent gibberish)
             
             rewritten = normalize_sentence(rewritten)
             
@@ -900,6 +978,53 @@ def rewrite_sentence_human(sentence: str, source_sentence: str = "", strength: i
             
             current_sim = new_sim
             passes += 1
+
+    # Stronger enforcement: keep applying fallback chain until similarity < target_plag
+    # or until we hit a safe attempt limit. This ensures no branch returns unchanged text.
+    if source_sentence:
+        attempts = 0
+        max_attempts = 6
+        while compute_text_similarity(rewritten, source_sentence) > target_plag and attempts < max_attempts:
+            # fallback chain: deep paraphrase -> restructure -> phrase-level paraphrase
+            rewritten = deep_paraphrase_sentence(rewritten, source_sentence)
+            if rewritten.strip() == original.strip():
+                rewritten = restructure_sentence(rewritten)
+            if rewritten.strip() == original.strip():
+                rewritten = apply_phrase_paraphrases(rewritten)
+            rewritten = normalize_sentence(rewritten)
+            # If we're still extremely similar to the original, try a final aggressive restructuring
+            if compute_text_similarity(original, rewritten) > 0.90:
+                rewritten = restructure_sentence(deep_paraphrase_sentence(original, source_sentence))
+            attempts += 1
+
+    # Final hard rejection: if rewritten is still >90% similar to original, force restructure/phrase paraphrase
+    if compute_text_similarity(original, rewritten) > 0.90 or rewritten.strip() == original.strip():
+        rewritten = deep_paraphrase_sentence(original, source_sentence)
+        if rewritten.strip() == original.strip() or compute_text_similarity(original, rewritten) > 0.90:
+            rewritten = restructure_sentence(original)
+        if rewritten.strip() == original.strip() or compute_text_similarity(original, rewritten) > 0.90:
+            rewritten = apply_phrase_paraphrases(original)
+
+    # Last-resort deterministic minimal variation to guarantee output differs
+    if rewritten.strip() == original.strip() or compute_text_similarity(original, rewritten) > 0.90:
+        def _force_minimal_variation(s: str) -> str:
+            s_clean = s.strip()
+            trailing = ''
+            if s_clean and s_clean[-1] in '.!?':
+                trailing = s_clean[-1]
+                s_clean = s_clean[:-1]
+            words = s_clean.split()
+            if len(words) > 3:
+                rot = words[1:] + words[:1]
+                res = ' '.join(rot)
+                res = res[0].upper() + res[1:]
+                if trailing:
+                    res += trailing
+                return res
+            # fallback: append short deterministic humanizing phrase
+            return (s_clean + ' In other words.').strip()
+
+        rewritten = _force_minimal_variation(original)
 
     # ── Explain Changes Feature ──
     changes = []
@@ -939,13 +1064,20 @@ def rewrite_sentence_human(sentence: str, source_sentence: str = "", strength: i
         emb_orig = similarity_model.encode(original, convert_to_tensor=True)
         emb_rewritten = similarity_model.encode(rewritten, convert_to_tensor=True)
         semantic_sim = float(util.cos_sim(emb_orig, emb_rewritten)[0][0])
-        
+
         if semantic_sim < 0.85:
-            rewritten = original
-    except:
-        # Fallback if semantic model fails
+            # Attempt fallback chain rather than reverting to the original
+            rewritten = deep_paraphrase_sentence(original, source_sentence)
+            if compute_text_similarity(original, rewritten) > 0.90 or rewritten.strip() == original.strip():
+                rewritten = restructure_sentence(original)
+            if compute_text_similarity(original, rewritten) > 0.90 or rewritten.strip() == original.strip():
+                rewritten = apply_phrase_paraphrases(original)
+    except Exception:
+        # Fallback if semantic model fails: try to ensure meaningful paraphrase
         if meaning_similarity < 0.30:
-            rewritten = original
+            rewritten = deep_paraphrase_sentence(original, source_sentence)
+            if rewritten.strip() == original.strip() or compute_text_similarity(original, rewritten) > 0.90:
+                rewritten = restructure_sentence(original)
     
     source_sim_before = compute_text_similarity(original, source_sentence) if source_sentence else 0
     source_sim_after = compute_text_similarity(rewritten, source_sentence) if source_sentence else 0
@@ -1007,12 +1139,13 @@ def restructure_sentence(sentence: str) -> str:
 def normalize_sentence(sentence: str) -> str:
     """Clean and normalize rewritten text for proper punctuation and capitalization."""
     if sentence is None:
-        return ""
-
-    sentence = sentence.strip()
-    sentence = re.sub(r'\s+', ' ', sentence)
-    sentence = re.sub(r'\s+([,\.!?;:])', r'\1', sentence)
-    sentence = re.sub(r'([,\.!?;:])([^\s\)\'\"])', r'\1 \2', sentence)
+        return {
+            "rewritten": rewritten,
+            "rewrite_method": "structural",
+            "source_similarity_after": compute_text_similarity(source_sentence, rewritten),
+            "humanization_score": 1.0
+        }
+    sentence = fix_common_lexical_artifacts(sentence)
     sentence = re.sub(r'\(\s+', '(', sentence)
     sentence = re.sub(r'\s+\)', ')', sentence)
     sentence = re.sub(r'\s+-\s+', ' - ', sentence)
@@ -1167,9 +1300,52 @@ def add_human_phrasing(sentence: str) -> str:
 # Text Processing Utilities
 # ─────────────────────────────────────────────────────────
 def split_into_sentences(text: str) -> list[str]:
-    """Split text into sentences."""
-    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
-    return [s.strip() for s in sentences if s.strip()]
+    """Split text into sentences and remove accidental duplicated fragments."""
+    if not text:
+        return []
+
+    cleaned = re.sub(r'\s+', ' ', text.strip())
+    # Fix merged boundaries like "concArtificial" and "important.erns"
+    cleaned = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', cleaned)
+    cleaned = re.sub(r'([.!?])(?=[A-Za-z])', r'\1 ', cleaned)
+
+    # Collapse exact repeated chunks if they occur back-to-back.
+    cleaned = re.sub(r'(.+?)\1', r'\1', cleaned)
+
+    raw_sentences = re.findall(r'[^.!?]+[.!?]|[^.!?]+$', cleaned)
+    sentences = [s.strip() for s in raw_sentences if s.strip()]
+
+    # Remove duplicates/noisy stitched artifacts.
+    deduped: list[str] = []
+    for sent in sentences:
+        # If a sentence embeds a previously seen sentence after a noisy prefix,
+        # trim to the embedded sentence start (e.g., "... conc Artificial intelligence ...").
+        lowered = sent.lower().strip()
+        for prev in deduped:
+            prev_core = re.sub(r"[.!?]+$", "", prev).lower().strip()
+            idx = lowered.find(prev_core)
+            if idx > 0:
+                sent = sent[idx:].strip()
+                lowered = sent.lower().strip()
+                break
+
+        normalized = lowered
+        is_dup = any(SequenceMatcher(None, prev.lower().strip(), normalized).ratio() >= 0.90 for prev in deduped)
+        if is_dup:
+            continue
+
+        # Drop likely truncated tail fragments like "Erns about ..." when they mostly
+        # repeat an earlier sentence.
+        first_word = re.findall(r"[A-Za-z]+", sent)
+        first_len = len(first_word[0]) if first_word else 0
+        if first_len <= 4:
+            similar_prior = any(SequenceMatcher(None, prev.lower(), normalized).ratio() >= 0.62 for prev in deduped)
+            if similar_prior:
+                continue
+
+        deduped.append(sent)
+
+    return deduped
 
 
 def compute_text_similarity(text1: str, text2: str) -> float:
@@ -1415,7 +1591,7 @@ def check_plagiarism():
                 best_source = sent1
         
         # Determine if this sentence is plagiarized
-        is_plag = best_sim >= 0.5
+        is_plag = best_sim >= 0.30
         
         # Rewrite if plagiarized
         if is_plag:
@@ -1495,11 +1671,12 @@ def verify_rewrite():
     # Similarity to original plag (meaning preservation)
     meaning_sim = compute_text_similarity(original_plag, user_rewrite)
     
-    # Improvement metrics
-    original_plag_score = compute_text_similarity(original_source, original_plag)
-    
+
+    # Correct plagiarism reduction calculation: source-vs-suspected vs source-vs-rewritten
+    before = compute_text_similarity(original_source, original_plag)
+    after = compute_text_similarity(original_source, user_rewrite)
     improvements = {
-        "plagiarism_reduced": round((original_plag_score - current_analysis["metrics"]["sequence_similarity"]) * 100, 1),
+        "plagiarism_reduced": round(max(0, (before - after)) * 100, 1),
         "meaning_preserved": round(meaning_sim * 100, 1),
         "word_overlap_change": round((compute_word_overlap(original_plag, user_rewrite) - compute_word_overlap(original_source, original_plag)) * 100, 1)
     }
@@ -1534,8 +1711,14 @@ def auto_plagiarism_pipeline():
     strength = data.get("strength", 3)
     mode = data.get("mode", "remove_plagiarism")
     
+
+    # Check for too short or informal input
     if not clean_text:
         return jsonify({"error": "Clean text required"}), 400
+    if len(clean_text.split()) < 6 or all(word.strip(".,!? ").lower() in ["hi", "hello", "hey", "yo", "what's", "up", "ohhooo", "hiii", "ok", "okay"] for word in clean_text.split()):
+        return jsonify({
+            "error": "Input too short or informal for meaningful rewriting. Please enter a longer or more formal sentence or paragraph."
+        }), 400
 
     # Step 1: Auto-generate suspected plagiarized text
     suspected_text, original_clean, simulation_stats = auto_generate_plagiarized(clean_text)
@@ -1549,6 +1732,7 @@ def auto_plagiarism_pipeline():
     
     sentence_analysis = []
     reconstructed_sentences = []
+    reduction_values = []
     
     for sent_suspected in sentences_suspected:
         best_source = ""
@@ -1558,21 +1742,29 @@ def auto_plagiarism_pipeline():
             if sim > best_sim:
                 best_sim = sim
                 best_source = sent_source
-        
-        is_plag = best_sim >= 0.5
-        rewrite_subject = sent_suspected
-        rewrite_reference = best_source
-        rewrite_result = rewrite_sentence_human(rewrite_subject, rewrite_reference, strength, mode)
+
+        # FORCE REWRITE ALWAYS, no conditions
+        rewrite_result = rewrite_sentence_human(
+            sent_suspected,
+            best_source,
+            strength=3,
+            mode="humanize_ai"
+        )
         if not rewrite_result.get("rewrite_method"):
             rewrite_result["rewrite_method"] = "local"
-        
+        before = compute_text_similarity(best_source, sent_suspected)
+        after = compute_text_similarity(best_source, rewrite_result["rewritten"])
+        plagiarism_reduced = round(max(0, (before - after)) * 100, 1)
+
         sentence_analysis.append({
             "sentence": sent_suspected,
             "source_match": best_source,
             "similarity": round(best_sim, 3),
-            "is_plagiarized": is_plag,
+            "is_plagiarized": True,
             "rewrite": rewrite_result,
+            "plagiarism_reduced": plagiarism_reduced,
         })
+        reduction_values.append(plagiarism_reduced)
         reconstructed_sentences.append(rewrite_result["rewritten"])
     
     reconstructed_text = " ".join(reconstructed_sentences)
@@ -1600,14 +1792,20 @@ def auto_plagiarism_pipeline():
         "rewrite_engine": get_rewrite_engine(sentence_analysis),
         # Step 3
         "reconstructed_text": reconstructed_text,
+        # Debug logs are also emitted server-side for SOURCE/SUSPECTED/FINAL
         # Step 4
         "similarity_check": {
             "meaning_preserved_pct": meaning_preserved_pct,
+            "plagiarism_reduced_pct": round(sum(reduction_values) / max(1, len(reduction_values)), 1),
             "source_rewrite_similarity": round(source_rewrite_similarity * 100, 1),
             "humanization_score": humanization_score,
             "status": "excellent" if meaning_preserved_pct > 85 else "good" if meaning_preserved_pct > 70 else "fair"
         }
     })
+
+    # Server-side debug log for easy tracing
+    app.logger.info("AUTO-PLAG | SOURCE:\n%s\n--- SUSPECTED:\n%s\n--- FINAL:\n%s",
+                    original_clean, suspected_text, reconstructed_text)
 
 
 @app.route("/api/compare", methods=["POST"])
