@@ -1,6 +1,5 @@
 .env
 plagiarism_app/.env
-__pycache__/
 *.pyc
 .venv/
 .gemini/
