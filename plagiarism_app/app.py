@@ -344,7 +344,7 @@ def llm_rewrite_sentence(sentence: str, source_sentence: str = "") -> str | None
         payload = json.dumps({
             "model": config["api_model"],
             "messages": [
-                {"role": "system", "content": "You are a skilled text humanizer and plagiarism remover. Rewrite text using simple, everyday English while completely changing the structure to ensure 0% plagiarism."},
+                {"role": "system", "content": "You are a skilled text humanizer and plagiarism remover. Rewrite text using simple, everyday English while completely changing the structure to ensure 0% plagiarism. Ensure all output is grammatically correct with proper punctuation, capitalization, and sentence structure."},
                 {"role": "user", "content": current_prompt},
             ],
             "temperature": 0.2,
@@ -410,7 +410,7 @@ def llm_generate_plagiarized(clean_text: str) -> tuple[str, str] | None:
         payload = json.dumps({
             "model": config["api_model"],
             "messages": [
-                {"role": "system", "content": "You are a skilled text humanizer and plagiarism remover."},
+                {"role": "system", "content": "You are a skilled text humanizer and plagiarism remover. Ensure all output is grammatically correct with proper punctuation, capitalization, and sentence structure."},
                 {"role": "user", "content": current_prompt},
             ],
             "temperature": 0.45,
@@ -1955,15 +1955,17 @@ def index():
 @app.route("/api/health")
 def health():
     """Health check endpoint."""
-    api_key, api_model, api_ready = get_openai_config()
+    llm_configs = get_llm_configs()
+    primary_llm = llm_configs[0] if llm_configs else {}
     return jsonify({
         "status": "ok",
         "model_loaded": model is not None,
         "metadata": metadata if metadata else {},
-        "openai": {
-            "enabled": api_ready,
-            "model": api_model,
-            "has_api_key": bool(api_key),
+        "llm": {
+            "enabled": bool(llm_configs),
+            "model": primary_llm.get("api_model", "none"),
+            "provider_count": len(llm_configs),
+            "has_api_key": bool(primary_llm.get("api_key")),
         },
     })
 
