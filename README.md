@@ -12,9 +12,21 @@ A polished, enterprise-grade plagiarism detection and rewrite assistant built fo
 - **Full Auto Workflow**: A 4-step automated pipeline that generates plagiarism, detects it, reconstructs clean text, and verifies meaning preservation.
 - **Deep Neural Analysis**: Multi-step loading sequences showing real-time decomposition, semantic vector scanning, and cross-referencing.
 - **Advanced Rewriting Engine**: Adjustable rewrite strength (Low, Medium, Aggressive) and specialized modes for **Removing Plagiarism** or **Humanizing AI Text**.
-- **Human-Like Reconstruction**: Preserves semantic integrity with a target meaning match of 90%+.
+- **Human-Like Reconstruction**: Preserves semantic integrity with sentence-level semantic checks and deterministic fallback reconstruction.
+- **Short-Sentence Safe Rewrite**: Short/simple inputs are paraphrased using phrase-level replacements instead of unsafe clause reordering.
+- **Grammar-Safe Token Protection**: Core grammar words (including `a`, `an`, `the`) are protected from aggressive synonym replacement.
 - **Activity History**: Local storage integration to track your previous scans and rewrites.
 - **Professional UI**: Glassmorphism design, pulsing preloader, and high-performance top-bar progress indicators.
+
+---
+
+## 🆕 Latest Updates (April 2026)
+
+- Fixed `restructure_sentence()` behavior to avoid corrupting short/simple sentences.
+- Added fallback logic so single-clause sentences use phrase paraphrasing when clause movement is not possible.
+- Added stronger protected-word skipping in aggressive synonym replacement to prevent article movement (`a`, `an`, `the`) and grammar breakage.
+- Expanded phrase-level paraphrase coverage for paragraph-definition style academic sentences.
+- Improved anti-plagiarism fallback chain so rewrites avoid returning near-identical output.
 
 ---
 
@@ -28,6 +40,12 @@ Install the core dependencies:
 python -m venv .venv
 source .venv/Scripts/activate  # Windows PowerShell: .\.venv\Scripts\Activate.ps1
 pip install flask pandas numpy scipy scikit-learn joblib
+```
+
+For the current rewrite and semantic-check pipeline, also install:
+
+```bash
+pip install sentence-transformers nltk python-dotenv
 ```
 
 For advanced rewriting (OpenAI/Gemini support), create a `.env` file in the `plagiarism_app/` directory:
@@ -95,21 +113,17 @@ This repository includes tools for generating training data and testing rewrite 
 
 This project is **still in active development**. Several bugs and limitations are currently being addressed:
 
-### Current Bugs to Fix
-- ❌ **Neural Model Loading**: `HAS_NEURAL = False` — T5 and SentenceTransformer models not loading in virtual environment. Fallback logic is being used instead.
-- ❌ **Paraphrase Quality**: Without neural models, paraphrasing relies on synonym replacement and restructuring, which can produce weak or repetitive results.
-- ❌ **Semantic Similarity**: SentenceTransformer embeddings occasionally fail to load, affecting meaning preservation checks.
-- ❌ **Auto-Plagiarism Generation**: May still produce identical or near-identical variations in some cases.
-- ❌ **Long Document Handling**: Text longer than 5000 characters may timeout or produce inconsistent results.
-- ❌ **LLM API Integration**: OpenAI and Gemini API fallbacks not fully tested.
+### Current Limitations
+- ⚠️ **Environment Setup Sensitivity**: Missing Python dependencies can disable parts of rewriting and semantic scoring.
+- ⚠️ **LLM Optionality**: OpenAI/Groq/Gemini rewriting requires valid API keys; local rewrite fallback is used otherwise.
+- ⚠️ **Long Document Handling**: Very long inputs can still lead to slower processing and occasional inconsistency.
+- ⚠️ **Rewrite Variability**: Rewrites are intentionally non-deterministic in some steps, so exact output wording can differ between runs.
 
 ### Planned Fixes
-- ✅ Force neural models to load correctly in `.venv`
-- ✅ Implement proper error handling for model initialization
-- ✅ Add retry logic for semantic similarity computation
-- ✅ Improve plagiarism generation with structural variation
-- ✅ Optimize performance for large documents
-- ✅ Add comprehensive unit tests
+- ✅ Stabilize environment bootstrap with a pinned requirements file
+- ✅ Expand phrase and synonym banks for domain-specific academic text
+- ✅ Improve long-input chunking and timeout handling
+- ✅ Add comprehensive rewrite regression tests
 
 ### Contributing
 If you encounter bugs or have suggestions, please open an issue on GitHub.
