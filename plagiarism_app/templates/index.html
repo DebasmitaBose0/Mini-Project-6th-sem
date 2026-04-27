@@ -479,6 +479,7 @@
                 showError('Please write your reconstructed version.');
                 return;
             }
+
             if (!original_source || !original_plag) {
                 showError('Please fill source and original flagged sentence first.');
                 return;
@@ -804,26 +805,42 @@
             section.classList.remove('hidden');
 
             const loadingSteps = [
-                "Decomposing sentences...",
-                "Scanning semantic vectors...",
-                "Cross-referencing datasets...",
-                "Calculating similarity scores...",
-                "Generating intelligent rewrites..."
+                { label: "Preparing text", detail: "Cleaning punctuation, spacing, and sentence boundaries", pct: 18 },
+                { label: "Checking similarity", detail: "Comparing source and generated text patterns", pct: 38 },
+                { label: "Reconstructing", detail: "Building cleaner sentences with reduced overlap", pct: 62 },
+                { label: "Verifying reduction", detail: "Rechecking plagiarism, meaning, and word similarity", pct: 84 },
+                { label: "Finalizing report", detail: "Preparing scores and word-by-word results", pct: 96 }
             ];
 
             document.getElementById('results-content').innerHTML = `
-                <div class="loading-container fade-in">
-                    <div class="minimal-spinner">
-                        <div class="minimal-spinner-core"></div>
+                <div class="loading-container workflow-loader fade-in">
+                    <div class="loader-summary">
+                        <div class="loader-ring" aria-hidden="true">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="loader-ring-bg" cx="60" cy="60" r="52"></circle>
+                                <circle class="loader-ring-progress" id="loader-ring-progress" cx="60" cy="60" r="52"></circle>
+                            </svg>
+                            <span id="loader-percent">15%</span>
+                        </div>
+                        <div class="loader-copy">
+                            <p class="loading-kicker">Workflow running</p>
+                            <p class="loading-text" id="analysis-status">${message}</p>
+                            <p class="loading-subtext" id="analysis-detail">Starting plagiarism analysis and reconstruction.</p>
+                        </div>
                     </div>
-                    <p class="loading-text" id="analysis-status">${message}</p>
-                    <p class="loading-subtext">Our AI is processing your request using 1M+ samples.</p>
-                    <div class="loading-steps-track">
-                        <div class="loading-step active" id="step-0"></div>
-                        <div class="loading-step" id="step-1"></div>
-                        <div class="loading-step" id="step-2"></div>
-                        <div class="loading-step" id="step-3"></div>
-                        <div class="loading-step" id="step-4"></div>
+                    <div class="loader-progress-line">
+                        <span id="loader-progress-fill" style="width: 15%"></span>
+                    </div>
+                    <div class="loading-checklist">
+                        ${loadingSteps.map((step, index) => `
+                            <div class="loading-check ${index === 0 ? 'active' : ''}" id="step-${index}">
+                                <span class="loading-check-icon">${index + 1}</span>
+                                <div>
+                                    <strong>${step.label}</strong>
+                                    <small>${step.detail}</small>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `;
@@ -831,8 +848,21 @@
             let stepIdx = 0;
             const stepInterval = setInterval(() => {
                 if (stepIdx < loadingSteps.length) {
+                    const step = loadingSteps[stepIdx];
                     const statusEl = document.getElementById('analysis-status');
-                    if (statusEl) statusEl.textContent = loadingSteps[stepIdx];
+                    const detailEl = document.getElementById('analysis-detail');
+                    const percentEl = document.getElementById('loader-percent');
+                    const progressFill = document.getElementById('loader-progress-fill');
+                    const ringProgress = document.getElementById('loader-ring-progress');
+                    if (statusEl) statusEl.textContent = step.label;
+                    if (detailEl) detailEl.textContent = step.detail;
+                    if (percentEl) percentEl.textContent = `${step.pct}%`;
+                    if (progressFill) progressFill.style.width = `${step.pct}%`;
+                    if (ringProgress) {
+                        const circumference = 2 * Math.PI * 52;
+                        ringProgress.style.strokeDasharray = circumference;
+                        ringProgress.style.strokeDashoffset = circumference - (step.pct / 100) * circumference;
+                    }
 
                     const stepEl = document.getElementById(`step-${stepIdx}`);
                     if (stepEl) stepEl.classList.add('completed');
@@ -1430,13 +1460,29 @@
                 return;
             }
 
+            let reuseContext = {};
+            try {
+                const lastOriginal = localStorage.getItem('lastAutoOriginal') || '';
+                const lastReconstructed = localStorage.getItem('lastAutoReconstructed') || '';
+                const lastScore = Number(localStorage.getItem('lastAutoScore') || 0);
+                if (lastOriginal && lastReconstructed && cleanText === lastReconstructed) {
+                    reuseContext = {
+                        reference_original: lastOriginal,
+                        previous_score: lastScore,
+                        regenerated_input: true,
+                    };
+                }
+            } catch (err) {
+                reuseContext = {};
+            }
+
             showLoading('🧠 Running full 4-step workflow...\nGenerating plagiarized version...');
 
             try {
                 const response = await fetch('/api/auto_plag', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clean_text: cleanText, strength: rewriteStrength, mode: rewriteTarget }),
+                    body: JSON.stringify({ clean_text: cleanText, strength: rewriteStrength, mode: rewriteTarget, ...reuseContext }),
                 });
                 const data = await response.json();
                 if (response.ok) {
@@ -1475,12 +1521,27 @@
             const color = getSeverityColor(data.detection.severity);
             const gradient = getSeverityGradient(data.detection.severity);
             const hasSourceRewrite = data.sentence_analysis.some(s => s.rewrite && s.rewrite.rewrite_method === 'source');
+            const wordSimilarity = data.similarity_check.original_reconstruction_word_similarity || {};
+            const wordRows = (wordSimilarity.rows || []).map(row => `
+                <tr class="word-sim-row word-sim-${row.status}">
+                    <td>${escapeHtml(row.original || '-')}</td>
+                    <td>${escapeHtml(row.regenerated || '-')}</td>
+                    <td>${escapeHtml(row.status || '')}</td>
+                    <td>${Number(row.similarity || 0).toFixed(1)}%</td>
+                </tr>
+            `).join('');
             const perSentenceReductionChips = (data.sentence_analysis || []).map((s, i) => {
                 const reduction = Number(s.plagiarism_reduced || 0).toFixed(1);
                 const reductionValue = Number(s.plagiarism_reduced || 0);
                 const reductionClass = reductionValue < 5 ? 'reduction-low' : (reductionValue <= 15 ? 'reduction-medium' : 'reduction-high');
                 return `<span class="sentence-reduction-chip ${reductionClass}" title="Sentence ${i + 1} reduction">S${i + 1}: ${reduction}%</span>`;
             }).join('');
+
+            try {
+                localStorage.setItem('lastAutoOriginal', data.original_clean || '');
+                localStorage.setItem('lastAutoReconstructed', data.reconstructed_text || '');
+                localStorage.setItem('lastAutoScore', String(data.detection?.overall_score || 0));
+            } catch (err) {}
 
             document.getElementById('results-content').innerHTML = `
                 <div class="results-card fade-in">
@@ -1542,8 +1603,28 @@
                             <h4>Step 4: Explain Changes & Similarity Check</h4>
                             <div class="verify-stats">
                                 <span>Original Meaning Match: <strong>${meaningPreserved}%</strong></span>
+                                <span>Original vs Regenerated Similarity: <strong>${data.similarity_check.original_reconstruction_similarity_pct || 0}%</strong></span>
+                                <span>Word Match: <strong>${data.similarity_check.original_reconstruction_word_match_pct || 0}%</strong></span>
+                                <span>Word Overlap: <strong>${data.similarity_check.original_reconstruction_word_overlap_pct || 0}%</strong></span>
+                                <span>Final Recheck Plagiarism: <strong>${data.similarity_check.final_recheck_score || 0}%</strong></span>
                                 <span>Plagiarism Reduced: <strong>${overallReduction}%</strong></span>
                                 <span>Humanization Score: <strong>${data.similarity_check.humanization_score || 0}%</strong></span>
+                            </div>
+                            <div class="word-similarity-box">
+                                <span class="sentence-reduction-label">Word-by-word similarity</span>
+                                <div class="word-similarity-table-wrap">
+                                    <table class="word-similarity-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Original</th>
+                                                <th>Regenerated</th>
+                                                <th>Status</th>
+                                                <th>Similarity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${wordRows || '<tr><td colspan="4">No words to compare</td></tr>'}</tbody>
+                                    </table>
+                                </div>
                             </div>
                             <div class="sentence-reduction-strip">
                                 <span class="sentence-reduction-label">Per-sentence reduction</span>
