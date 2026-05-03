@@ -170,6 +170,7 @@ This project is licensed under the MIT License.
 ## 👩‍💻 Author
 
 **Joita Paul**
+**Manisha Debnath**
 B.Tech CSE Student | AI & Full‑Stack Enthusiast
 
 ---
