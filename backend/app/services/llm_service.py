@@ -13,12 +13,14 @@ Text:
         res = requests.post(
             "http://localhost:11434/api/generate",
             json={
-                "model": "llama3",
+                "model": "llama3:8b",
                 "prompt": prompt,
                 "stream": False
             },
-            timeout=60
+            timeout=120
         )
+        res.raise_for_status()
         return res.json()["response"]
-    except:
-        return "Fallback rewritten text."
+    except Exception as e:
+        print(f"Ollama error: {e}")
+        return f"Fallback rewritten text due to error: {str(e)}"
