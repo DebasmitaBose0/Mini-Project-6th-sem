@@ -1,3 +1,8 @@
+```text
+╔════════════════════╗
+   Plagiarism AI
+╚════════════════════╝
+```
 
 # Plagiarism AI Detection System
 
