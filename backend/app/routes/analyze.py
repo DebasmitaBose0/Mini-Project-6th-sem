@@ -11,8 +11,18 @@ def analyze(data: dict):
     sim = compute_similarity(original, rewritten)
     sentence_sim = sentence_level_similarity(original, rewritten)
 
+    # Logic to show "Proper" values:
+    # Plagiarism: Verbatim matches (exact sentence overlap) relative to original length
+    # Similarity: Overall structural/semantic overlap
+    
+    orig_sentences = [s.strip() for s in original.split('.') if s.strip()]
+    plagiarism_score = (len(sentence_sim) / max(len(orig_sentences), 1)) * 100
+    
+    # Cap plagiarism by overall similarity to stay realistic
+    plagiarism_score = min(plagiarism_score, sim * 100)
+    
     return {
-        "similarity": sim,
-        "plagiarism_percent": sim * 100,
+        "similarity": round(sim * 100, 2),
+        "plagiarism_percent": round(plagiarism_score, 1),
         "sentence_matches": sentence_sim
     }
