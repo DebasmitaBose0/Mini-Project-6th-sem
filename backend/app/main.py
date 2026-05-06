@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import rewrite
+from app.routes import rewrite, analyze, history
 
 # ✅ FIRST create app
 app = FastAPI()
@@ -16,3 +16,5 @@ app.add_middleware(
 
 # ✅ THEN include routes
 app.include_router(rewrite.router)
+app.include_router(analyze.router)
+app.include_router(history.router)
