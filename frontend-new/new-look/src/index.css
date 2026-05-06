@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Soft, eye-comfortable palette */
+    --background: 210 20% 98%;
+    --foreground: 220 15% 25%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 25%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 25%;
+
+    /* Soft slate */
+    --primary: 220 15% 30%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 15% 92%;
+    --secondary-foreground: 220 15% 25%;
+
+    --muted: 210 15% 94%;
+    --muted-foreground: 220 10% 45%;
+
+    /* Gentle blue accent */
+    --accent: 221 83% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Plagiarism risk colors - softer variants */
+    --risk-high: 0 70% 60%;
+    --risk-medium: 35 90% 60%;
+    --risk-low: 150 50% 50%;
+
+    --highlight-match: 0 70% 60%;
+    --highlight-paraphrase: 35 90% 60%;
+
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 15% 88%;
+    --input: 210 15% 88%;
+    --ring: 220 15% 25%;
+
+    --radius: 0.25rem;
+
+    --gradient-hero: radial-gradient(ellipse at top left, hsl(221 83% 58% / 0.08), transparent 60%),
+                     radial-gradient(ellipse at bottom right, hsl(220 15% 30% / 0.05), transparent 60%);
+    --gradient-ink: linear-gradient(135deg, hsl(220 15% 25%), hsl(220 15% 35%));
+    --shadow-editorial: 0 1px 2px hsl(220 15% 25% / 0.05), 0 8px 20px -8px hsl(220 15% 25% / 0.1);
+    --shadow-deep: 0 20px 40px -20px hsl(220 15% 25% / 0.25);
+
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 220 15% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 15% 92%;
+    --sidebar-accent-foreground: 220 15% 25%;
+    --sidebar-border: 210 15% 88%;
+    --sidebar-ring: 221 83% 58%;
+  }
+
+  .dark {
+    --background: 20 14% 8%;
+    --foreground: 38 33% 96%;
+    --card: 20 14% 11%;
+    --card-foreground: 38 33% 96%;
+    --popover: 20 14% 11%;
+    --popover-foreground: 38 33% 96%;
+    --primary: 38 33% 96%;
+    --primary-foreground: 20 14% 10%;
+    --secondary: 20 10% 16%;
+    --secondary-foreground: 38 33% 96%;
+    --muted: 20 10% 14%;
+    --muted-foreground: 38 10% 65%;
+    --accent: 14 75% 55%;
+    --accent-foreground: 20 14% 10%;
+    --border: 20 10% 18%;
+    --input: 20 10% 18%;
+    --ring: 14 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  .font-display {
+    font-family: 'Fraunces', serif;
+    font-feature-settings: 'ss01';
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  }
+
+  .text-balance { text-wrap: balance; }
+
+  .marquee {
+    animation: marquee 40s linear infinite;
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @keyframes scan-line {
+    0%, 100% { transform: translateY(0); opacity: 0.3; }
+    50% { transform: translateY(100%); opacity: 1; }
+  }
+
+  .animate-scan { animation: scan-line 2.5s ease-in-out infinite; }
+
+  .highlight-match {
+    background: linear-gradient(180deg, transparent 60%, hsl(var(--highlight-match) / 0.35) 60%);
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--highlight-match));
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+
+  .highlight-paraphrase {
+    background: linear-gradient(180deg, transparent 60%, hsl(var(--highlight-paraphrase) / 0.35) 60%);
+  }
+}
