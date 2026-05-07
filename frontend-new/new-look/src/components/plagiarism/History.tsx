@@ -53,66 +53,71 @@ export const History = () => {
   if (history.length === 0) return null;
 
   return (
-    <section id="history" className="container py-24 bg-muted/10 border-t border-border">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-12">
-          <h2 className="font-display text-3xl font-medium tracking-tight">Recent Scans</h2>
-          <p className="text-muted-foreground mt-2">View, copy, and manage your plagiarism checking history.</p>
+    <section id="history" className="bg-muted/10 border border-border rounded-lg shadow-sm h-fit">
+      <div className="p-6">
+        <div className="mb-6">
+          <h2 className="font-display text-2xl font-medium tracking-tight">Recent Scans</h2>
+          <p className="text-sm text-muted-foreground mt-1 text-balance">View, copy, and manage your plagiarism checking history.</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {history.map((entry) => {
             const isExpanded = expandedId === entry.id;
             return (
-              <div key={entry.id} className="rounded-sm border border-border bg-card overflow-hidden">
+              <div key={entry.id} className="rounded-md border border-border bg-card overflow-hidden">
                 <div 
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                  className="flex flex-col gap-3 p-4 cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="bg-muted p-2 rounded">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 w-full overflow-hidden">
+                      <div className="bg-muted p-2 rounded shrink-0">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="overflow-hidden">
+                        <div className="font-medium text-sm truncate w-full">
+                          {entry.original.slice(0, 40)}...
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {format(new Date(entry.timestamp), "MMM d, h:mm a")}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium truncate max-w-xs md:max-w-md">
-                        {entry.original.slice(0, 50)}...
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(entry.timestamp), "PPpp")}
-                      </div>
+                    <div className="shrink-0 mt-1">
+                      {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="hidden md:block px-3 py-1 bg-risk-low/10 text-accent text-xs font-mono rounded">
+                  
+                  <div className="flex items-center justify-between text-xs px-1">
+                    <div className="px-2 py-0.5 bg-risk-low/10 text-accent font-mono rounded inline-block">
                       {(entry.similarity * 100).toFixed(1)}% Sim
                     </div>
-                    {isExpanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
                   </div>
                 </div>
 
                 {isExpanded && (
-                  <div className="p-6 border-t border-border bg-muted/10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 border-t border-border bg-muted/10 flex flex-col gap-4">
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 flex justify-between items-center">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 flex justify-between items-center">
                         <span>Original Text</span>
                       </div>
-                      <div className="bg-background border border-border rounded p-4 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                      <div className="bg-background border border-border rounded p-3 text-xs whitespace-pre-wrap max-h-40 overflow-y-auto">
                         {entry.original}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-widest text-accent mb-2 flex items-center justify-between">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1.5 flex items-center justify-between">
                         <span>Rewritten Output</span>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => handleCopy(entry.rewritten, e)} title="Copy rewritten text">
-                            <Copy className="h-4 w-4" />
+                        <div className="flex gap-1.5">
+                          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={(e) => handleCopy(entry.rewritten, e)} title="Copy rewritten text">
+                            <Copy className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={(e) => handleDelete(entry.id, e)} title="Delete entry">
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive hover:text-destructive" onClick={(e) => handleDelete(entry.id, e)} title="Delete entry">
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
-                      <div className="bg-background border border-accent/20 rounded p-4 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto font-serif">
+                      <div className="bg-background border border-accent/20 rounded p-3 text-xs whitespace-pre-wrap max-h-40 overflow-y-auto font-serif">
                         {entry.rewritten}
                       </div>
                     </div>
