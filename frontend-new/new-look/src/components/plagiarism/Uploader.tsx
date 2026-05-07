@@ -19,7 +19,11 @@ export const Uploader = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScan = async () => {
-    if (active === "text" && !text.trim()) return toast.error("Please paste some text to scan.");
+    if (active === "text") {
+      if (!text.trim()) return toast.error("Please paste some text to scan.");
+      const wordCount = text.trim().split(/\s+/).length;
+      if (wordCount > 400) return toast.error("Please limit your text to 400 words.");
+    }
     if (active === "file" && !fileName) return toast.error("Please upload a file first.");
     if (active === "url" && !url.trim()) return toast.error("Please enter a URL to scan.");
     
@@ -99,8 +103,8 @@ export const Uploader = () => {
                   onChange={(e) => setText(e.target.value)}
                   className="min-h-[280px] resize-none rounded-sm border-border bg-background font-display text-base leading-relaxed focus-visible:ring-accent"
                 />
-                <div className="mt-3 flex justify-start font-mono text-xs text-muted-foreground">
-                  <span>{words.toLocaleString()} words</span>
+                <div className={`mt-3 flex justify-start font-mono text-xs ${words > 400 ? 'text-destructive font-bold text-red-500' : 'text-muted-foreground'}`}>
+                  <span>{words.toLocaleString()} / 400 words</span>
                 </div>
               </div>
             )}
@@ -151,7 +155,7 @@ export const Uploader = () => {
                 <input type="checkbox" className="accent-accent" /> Exclude citations
               </label>
             </div>
-            <Button size="lg" className="rounded-sm" onClick={handleScan} disabled={scanning}>
+            <Button size="lg" className="rounded-sm" onClick={handleScan} disabled={scanning || (active === "text" && words > 400)}>
               {scanning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {scanning ? "Scanning…" : "Run scan"}
             </Button>
