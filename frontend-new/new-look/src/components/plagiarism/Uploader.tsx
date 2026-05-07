@@ -61,8 +61,8 @@ export const Uploader = () => {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
 
   return (
-    <section id="scan" className="container py-24">
-      <div className="mx-auto max-w-5xl">
+    <section id="scan" className="container pb-24 pt-8">
+      <div className="mx-auto max-w-4xl">
         <div className="mb-12 text-center">
           <div className="mb-3 font-mono text-xs uppercase tracking-[0.3em] text-accent">— Document Analysis</div>
           <h2 className="font-display text-4xl font-medium tracking-tight md:text-5xl">
@@ -161,7 +161,14 @@ export const Uploader = () => {
             </Button>
           </div>
           
-          {result && (
+          {scanning && (
+            <div className="p-8 border-t border-border bg-card flex flex-col items-center justify-center animate-pulse space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-accent" />
+              <p className="text-muted-foreground font-medium animate-pulse">Analyzing and rewriting your content. Please wait...</p>
+            </div>
+          )}
+
+          {!scanning && result && (
             <div className="p-8 border-t border-border bg-card">
               <h3 className="mb-4 font-display text-2xl">Analysis & Rewrite Results</h3>
               <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
