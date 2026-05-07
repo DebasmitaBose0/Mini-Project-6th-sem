@@ -122,11 +122,6 @@ export const Hero = () => {
               </div>
             </div>
           </div>
-
-          <div className="absolute -bottom-6 -left-6 hidden rounded-sm border border-border bg-card px-4 py-3 shadow-editorial md:block">
-            <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Sources matched</div>
-            <div className="font-display text-xl">14 documents</div>
-          </div>
         </motion.div>
       </div>
     </section>
