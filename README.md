@@ -1,4 +1,4 @@
-# Plagiarism AI Detection System
+# Plagiarism AI Detection & Rewriting System
 
 ```text
 ╔════════════════════╗
@@ -7,179 +7,98 @@
 ```
 
 ## 📌 Project Overview
-
-The **Plagiarism AI Detection System** is a machine learning–based application designed to detect similarities between text documents and identify potential plagiarism. The system analyzes input text and compares it with reference documents or datasets to calculate similarity scores using Natural Language Processing (NLP) techniques.
-
-This project helps educators, students, researchers, and content creators verify originality and maintain academic integrity.
-
----
+The **Plagiarism AI Detection & Rewriting System** is an advanced application that detects text similarities and identifies potential plagiarism, while also offering AI-powered text rewriting capabilities. The system analyzes input text (via direct paste, URL, or file upload) and compares it with reference documents to calculate similarity scores using Natural Language Processing (NLP) techniques.
 
 ## 🚀 Features
-
-* Upload or paste text for plagiarism detection
-* Compare text against stored datasets/documents
-* Similarity score generation
-* Highlight matched content sections
-* User-friendly interface
-* Fast processing using optimized NLP techniques
-* Scalable architecture for future dataset expansion
-
----
+* **Plagiarism Detection:** Paste text, upload documents, or provide URLs to cleanly scan for plagiarism.
+* **AI Text Rewriting:** Automatically rewrite flagged content to improve originality.
+* **Smart History:** Keep track of recent scans with a convenient history sidebar.
+* **Modern UI/UX:** Responsive, accessible, and animated interface featuring dark mode support.
+* **Highlighting & Copying:** Easily copy rewritten text and view detailed similarity metrics instantly.
 
 ## 🛠️ Technologies Used
 
-**Frontend:**
+**Frontend**
+* React 18 & TypeScript
+* Vite
+* Tailwind CSS & shadcn/ui
+* Framer Motion (Animations)
+* React Router DOM (Routing)
 
-* HTML
-* CSS
-* JavaScript
-
-**Backend:**
-
-* Python (Flask)
-
-**Libraries & Tools:**
-
-* scikit-learn
-* NumPy
-* Pandas
-* NLTK / spaCy
-* TF-IDF Vectorizer
-* Cosine Similarity
-
----
+**Backend**
+* Python 3
+* FastAPI (High-performance API framework)
+* Uvicorn (ASGI web server)
 
 ## 📂 Project Structure
 
+```text
+Mini-Project-6th-sem/
+├── backend/
+│   ├── app/
+│   │   ├── main.py           # FastAPI application
+│   │   ├── models/           # Data schemas
+│   │   ├── routes/           # API Endpoints (analyze, history, rewrite)
+│   │   └── services/         # LLM & Similarity Services
+│   └── requirements.txt      # Python dependencies
+├── frontend-new/new-look/
+│   ├── public/               # Static assets
+│   ├── src/
+│   │   ├── components/       # Reusable React components & UI elements
+│   │   ├── pages/            # Application views (Dashboard, etc.)
+│   │   └── App.tsx           # Main application routing
+│   ├── package.json          # Node dependencies
+│   └── tailwind.config.ts    # Tailwind styling configuration
+└── README.md
 ```
-plagiarism-ai-detection/
-│
-├── static/                # CSS, JS, images
-├── templates/             # HTML files
-├── dataset/               # Reference documents
-├── model/                 # Trained model files
-├── app.py                 # Main Flask application
-├── utils.py               # Helper functions
-├── requirements.txt       # Dependencies
-└── README.md              # Project documentation
-```
-
----
 
 ## ⚙️ Installation & Setup
 
-Follow these steps to run the project locally:
+Follow these steps to run the project locally. You will need two terminal windows running simultaneously.
 
-### Step 1: Clone the Repository
+### 1. Backend Setup
 
+Open your first terminal and navigate to the backend directory:
 ```bash
-git clone https://github.com/your-username/plagiarism-ai-detection.git
-cd plagiarism-ai-detection
+cd backend
 ```
 
-### Step 2: Create Virtual Environment
-
+Create and activate a virtual environment (Windows):
 ```bash
 python -m venv .venv
+../.venv/Scripts/activate
 ```
 
-### Step 3: Activate Virtual Environment
-
-**Windows:**
-
-```bash
-.venv\\Scripts\\activate
-```
-
-**Mac/Linux:**
-
-```bash
-source .venv/bin/activate
-```
-
-### Step 4: Install Dependencies
-
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 5: Run the Application
-
+Start the FastAPI server:
 ```bash
-python app.py
+uvicorn app.main:app --reload
+```
+The backend will run on `http://localhost:8000`.
+
+### 2. Frontend Setup
+
+Open your second terminal and navigate to the frontend directory:
+```bash
+cd frontend-new/new-look
 ```
 
-Now open your browser and go to:
-
+Install Node.js dependencies:
+```bash
+npm install
+# or if using bun
+bun install
 ```
-http://127.0.0.1:5000
+
+Start the Vite development server:
+```bash
+npm run dev
+# or if using bun
+bun run dev
 ```
 
----
-
-## 🧠 How It Works
-
-1. User uploads or enters text.
-2. Text preprocessing is applied:
-
-   * Lowercasing
-   * Stopword removal
-   * Tokenization
-   * Lemmatization
-3. TF-IDF converts text into numerical vectors.
-4. Cosine similarity compares input text with dataset documents.
-5. Similarity percentage is generated.
-6. Matching sections are highlighted in results.
-
----
-
-## 📊 Example Output
-
-| Input Text       | Matched Document | Similarity Score |
-| ---------------- | ---------------- | ---------------- |
-| Sample paragraph | doc3.txt         | 82%              |
-
----
-
-## 🔮 Future Improvements
-
-* Integration with large academic databases
-* Real-time web plagiarism detection
-* Deep learning–based semantic similarity detection
-* Multi-language plagiarism detection
-* User authentication system
-* Cloud deployment support
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-
-Steps to contribute:
-
-1. Fork the repository
-2. Create a new branch
-3. Make changes
-4. Commit updates
-5. Submit a Pull Request
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License.
-
----
-
-## 👩‍💻 Author
-
-**Joita Paul**
-**Manisha Debnath**
-B.Tech CSE Student | AI & Full‑Stack Enthusiast
-
----
-
-## ⭐ Support
-
-If you found this project helpful, consider giving it a ⭐ on GitHub!
+Access the application at `http://localhost:5173`.
