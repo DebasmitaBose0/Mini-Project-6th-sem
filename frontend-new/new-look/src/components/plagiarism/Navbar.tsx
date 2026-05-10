@@ -46,8 +46,8 @@ export const Navbar = () => {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
-          {["Product", "Database", "Pricing", "Research", "Docs"].map((l) => (
-            <Link key={l} to={`/${l.toLowerCase()}`} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+          {["Home", "History", "Pricing", "Research", "Docs"].map((l) => (
+            <Link key={l} to={l === "Home" ? "/" : `/${l.toLowerCase()}`} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
               {l}
             </Link>
           ))}

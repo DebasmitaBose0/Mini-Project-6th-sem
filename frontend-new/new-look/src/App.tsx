@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import ApiInfo from "./pages/ApiInfo.tsx";
+import HistoryPage from "./pages/HistoryPage.tsx";
 import PlaceholderPage from "./pages/PlaceholderPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { Preloader } from "./components/plagiarism/Preloader.tsx";
@@ -23,6 +24,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/api-info" element={<ApiInfo />} />
+          <Route path="/history" element={<HistoryPage />} />
           <Route path="/product" element={<PlaceholderPage />} />
           <Route path="/database" element={<PlaceholderPage />} />
           <Route path="/pricing" element={<PlaceholderPage />} />

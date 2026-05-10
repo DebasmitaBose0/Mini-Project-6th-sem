@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Link2, Loader2, Type, Upload } from "lucide-react";
+import { Loader2, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -12,52 +12,41 @@ const tabs = [
 export const Uploader = () => {
   const [active, setActive] = useState("text");
   const [text, setText] = useState("");
-  const [url, setUrl] = useState("");
-  const [fileName, setFileName] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<{ similarity: number; plagiarism_percent: number; rewritten: string } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScan = async () => {
-    if (active === "text") {
-      if (!text.trim()) return toast.error("Please paste some text to scan.");
-      const wordCount = text.trim().split(/\s+/).length;
-      if (wordCount > 400) return toast.error("Please limit your text to 400 words.");
-    }
-    if (active === "file" && !fileName) return toast.error("Please upload a file first.");
-    if (active === "url" && !url.trim()) return toast.error("Please enter a URL to scan.");
+    const formData = new FormData();
+    
+    if (!text.trim()) return toast.error("Please paste some text to scan.");
+    const wordCount = text.trim().split(/\s+/).length;
+    if (wordCount > 400) return toast.error("Please limit your text to 400 words.");
+    formData.append("text", text);
     
     setScanning(true);
     setResult(null);
     try {
       const response = await fetch("http://localhost:8000/rewrite", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text }),
+        body: formData,
       });
       
       if (!response.ok) {
-        throw new Error("Failed to scan document");
+        const err = await response.json();
+        throw new Error(err.detail || "Failed to scan document");
       }
       
       const data = await response.json();
       setResult(data);
       toast.success(`Scan complete — ${data.plagiarism_percent.toFixed(2)}% similarity to original.`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to connect to backend server.");
+      toast.error(error.message || "Failed to connect to backend server.");
     } finally {
       setScanning(false);
     }
   };
 
-  const handleFile = (f: File | null) => {
-    if (!f) return;
-    setFileName(f.name);
-    toast.success(`${f.name} ready to scan.`);
-  };
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
 
   return (
@@ -68,7 +57,7 @@ export const Uploader = () => {
           <h2 className="font-display text-4xl font-medium tracking-tight md:text-5xl">
             Submit Your Text
           </h2>
-          <p className="mt-4 text-muted-foreground">Select a method to begin scanning and rewriting your content.</p>
+          <p className="mt-4 text-muted-foreground">Paste your content below to begin scanning and rewriting.</p>
         </div>
 
         <div className="overflow-hidden rounded-sm border border-border bg-card shadow-editorial">
@@ -77,70 +66,30 @@ export const Uploader = () => {
               const Icon = t.icon;
               const isActive = active === t.id;
               return (
-                <button
+                <div
                   key={t.id}
-                  onClick={() => setActive(t.id)}
-                  className={`relative flex flex-1 items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-colors ${
-                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className="relative flex flex-1 items-center justify-center gap-2 px-6 py-4 text-sm font-medium text-foreground bg-muted/5"
                 >
                   <Icon className="h-4 w-4" />
                   {t.label}
-                  {isActive && (
-                    <motion.div layoutId="tab-underline" className="absolute inset-x-0 bottom-0 h-0.5 bg-accent" />
-                  )}
-                </button>
+                  <motion.div layoutId="tab-underline" className="absolute inset-x-0 bottom-0 h-0.5 bg-accent" />
+                </div>
               );
             })}
           </div>
 
           <div className="p-8">
-            {active === "text" && (
-              <div>
-                <Textarea
-                  placeholder="Paste your text here. Plagiarism AI yields the best results with substantial paragraphs."
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  className="min-h-[280px] resize-none rounded-sm border-border bg-background font-display text-base leading-relaxed focus-visible:ring-accent"
-                />
-                <div className={`mt-3 flex justify-start font-mono text-xs ${words > 400 ? 'text-destructive font-bold text-red-500' : 'text-muted-foreground'}`}>
-                  <span>{words.toLocaleString()} / 400 words</span>
-                </div>
+            <div>
+              <Textarea
+                placeholder="Paste your text here. Plagiarism AI yields the best results with substantial paragraphs."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="min-h-[280px] resize-none rounded-sm border-border bg-background font-display text-base leading-relaxed focus-visible:ring-accent"
+              />
+              <div className={`mt-3 flex justify-start font-mono text-xs ${words > 400 ? 'text-destructive font-bold text-red-500' : 'text-muted-foreground'}`}>
+                <span>{words.toLocaleString()} / 400 words</span>
               </div>
-            )}
-
-            {active === "file" && (
-              <div className="flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-border bg-background py-20 text-center">
-                <FileText className="mb-4 h-10 w-10 text-muted-foreground" />
-                <div className="font-display text-xl">{fileName ?? "Drop your document here"}</div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  PDF, DOCX, TXT, RTF — up to 50MB
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx,.txt,.rtf"
-                  className="hidden"
-                  onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-                />
-                <Button variant="outline" className="mt-6 rounded-sm" onClick={() => fileInputRef.current?.click()}>
-                  {fileName ? "Choose another" : "Browse files"}
-                </Button>
-              </div>
-            )}
-
-            {active === "url" && (
-              <div className="space-y-3">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com/article"
-                  className="w-full rounded-sm border border-border bg-background px-4 py-3 font-mono text-sm focus:border-accent focus:outline-none"
-                />
-                <p className="text-xs text-muted-foreground">We'll fetch the page and analyze its readable content.</p>
-              </div>
-            )}
+            </div>
           </div>
 
           <div className="flex items-center justify-between border-t border-border bg-muted/20 px-8 py-5">
@@ -155,7 +104,7 @@ export const Uploader = () => {
                 <input type="checkbox" className="accent-accent" /> Exclude citations
               </label>
             </div>
-            <Button size="lg" className="rounded-sm" onClick={handleScan} disabled={scanning || (active === "text" && words > 400)}>
+            <Button size="lg" className="rounded-sm" onClick={handleScan} disabled={scanning || words > 400}>
               {scanning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {scanning ? "Scanning…" : "Run scan"}
             </Button>
@@ -175,15 +124,29 @@ export const Uploader = () => {
                 <div className="rounded-sm border border-border p-4 bg-risk-low/10">
                   <div className="text-sm text-muted-foreground flex items-center justify-between">
                     Similarity to Original
-                    <span className="text-xs uppercase bg-background px-2 py-0.5 rounded border border-border">Generated vs Input</span>
+                    <span className="text-xs uppercase bg-background px-2 py-0.5 rounded border border-border">Overlap</span>
                   </div>
-                  <div className="font-display text-4xl mt-2 text-accent">
+                  <div className="font-display text-4xl mt-2 text-destructive">
                     {result.plagiarism_percent.toFixed(1)}%
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    A lower percentage means the new text is significantly restructured and rephrased compared to your input, ensuring high originality.
+                    Amount of structural and verbatim overlap found between the new and original text.
                   </p>
                 </div>
+
+                <div className="rounded-sm border border-border p-4 bg-accent/5">
+                  <div className="text-sm text-muted-foreground flex items-center justify-between">
+                    Plagiarism Removal
+                    <span className="text-xs uppercase bg-background px-2 py-0.5 rounded border border-border">Success Rate</span>
+                  </div>
+                  <div className="font-display text-4xl mt-2 text-accent">
+                    {(100 - result.plagiarism_percent).toFixed(1)}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Percentage of content that has been successfully transformed into original material.
+                  </p>
+                </div>
+
               </div>
               <div className="space-y-6">
                 <div className="rounded-sm border border-border p-6 bg-background relative">

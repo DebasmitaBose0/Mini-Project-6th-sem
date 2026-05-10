@@ -22,7 +22,7 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="font-display text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.1] tracking-tight text-balance"
+            className="font-display text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.1] tracking-tight text-balance text-left"
           >
             Ensure Authenticity,
             <br />
@@ -33,7 +33,7 @@ export const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground"
+            className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground text-left"
           >
             Plagiarism AI cross-references your writing against billions of web pages and known AI corpora — providing an advanced, precise report to help you maintain academic and professional integrity.
           </motion.p>
@@ -62,7 +62,7 @@ export const Hero = () => {
             </Button>
           </motion.div>
 
-          <div className="mt-12 flex items-baseline gap-8 border-t border-border pt-6">
+          <div className="mt-12 flex items-baseline gap-8 border-t border-border pt-6 w-full justify-start">
             {[
               { v: "89B", l: "Pages indexed" },
               { v: "0.4s", l: "Avg. scan / page" },
@@ -94,9 +94,9 @@ export const Hero = () => {
               <span className="font-mono text-xs text-accent">SCANNING</span>
             </div>
 
-            <div className="relative px-6 py-8 font-display text-[15px] leading-relaxed">
+            <div className="relative px-6 py-8 font-display text-[15px] leading-relaxed text-left">
               <div className="absolute inset-x-0 top-0 h-px animate-scan bg-gradient-to-r from-transparent via-accent to-transparent" />
-              <p className="mb-3">
+              <p className="mb-3 text-foreground">
                 The fundamental challenge of <span className="highlight-match">distributed consensus lies not in achieving agreement</span>, but in doing so under conditions of partial failure.
               </p>
               <p className="mb-3 text-muted-foreground">

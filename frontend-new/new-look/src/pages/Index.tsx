@@ -1,7 +1,6 @@
 import { Navbar } from "@/components/plagiarism/Navbar";
 import { Hero } from "@/components/plagiarism/Hero";
 import { Uploader } from "@/components/plagiarism/Uploader";
-import { History } from "@/components/plagiarism/History";
 import { Footer } from "@/components/plagiarism/Footer";
 
 const Index = () => {
@@ -10,14 +9,12 @@ const Index = () => {
       <Navbar />
       <main>
         <Hero />
-        <div className="container py-8 flex flex-col-reverse lg:flex-row gap-8 items-start">
-          <div className="w-full lg:w-1/3 shrink-0">
-            <History />
-          </div>
-          <div className="w-full lg:w-2/3">
+        <div className="container py-8 flex flex-col gap-12 items-center">
+          <div className="w-full max-w-4xl">
             <Uploader />
           </div>
         </div>
+
       </main>
       <Footer />
     </div>
