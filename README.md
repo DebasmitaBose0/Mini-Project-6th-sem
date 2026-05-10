@@ -7,14 +7,16 @@
 ```
 
 ## 📌 Project Overview
-The **Plagiarism AI Detection & Rewriting System** is an advanced application that detects text similarities and identifies potential plagiarism, while also offering AI-powered text rewriting capabilities. The system analyzes input text (via direct paste, URL, or file upload) and compares it with reference documents to calculate similarity scores using Natural Language Processing (NLP) techniques.
+The **Plagiarism AI Detection & Rewriting System** is an advanced open-source application that detects text similarities and identifies potential plagiarism, while offering AI-powered text rewriting capabilities to help users produce original content. 
+
+This platform was built as a final year mini-project by **Debasmita, Manisha, Joita, and Suchitra**. It operates completely free of charge, leveraging a privacy-first local AI engine powered by **Ollama (Llama 3)** and FastAPI to ensure your data never leaves your computer.
 
 ## 🚀 Features
-* **Plagiarism Detection:** Paste text, upload documents, or provide URLs to cleanly scan for plagiarism.
-* **AI Text Rewriting:** Automatically rewrite flagged content to improve originality.
-* **Smart History:** Keep track of recent scans with a convenient history sidebar.
-* **Modern UI/UX:** Responsive, accessible, and animated interface featuring dark mode support.
-* **Highlighting & Copying:** Easily copy rewritten text and view detailed similarity metrics instantly.
+* **AI Plagiarism Scanner:** Paste your text directly into our clean, focused uploader to instantly calculate similarity scores and plagiarism removal metrics.
+* **Context-Aware Rewriting:** Automatically rewrite flagged content using our local LLM integration to improve originality while preserving meaning.
+* **Dedicated History Page:** Keep track of recent scans and review past rewrites on a centralized history dashboard.
+* **Modern UI/UX:** Responsive, accessible, and animated interface featuring dark mode support and interactive tooltips.
+* **100% Free & Open Source:** Built by students, for students. Enterprise-grade security and zero subscription fees.
 
 ## 🛠️ Technologies Used
 
