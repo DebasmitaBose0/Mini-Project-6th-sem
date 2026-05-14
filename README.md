@@ -40,22 +40,116 @@ This platform was built as a third year mini-project by **Debasmita, Manisha and
 
 ```text
 Mini-Project-6th-sem/
+├── README.md
 ├── backend/
-│   ├── app/
-│   │   ├── main.py           # FastAPI application
-│   │   ├── models/           # Data schemas
-│   │   ├── routes/           # API Endpoints (analyze, history, rewrite)
-│   │   └── services/         # LLM & Similarity Services
-│   └── requirements.txt      # Python dependencies
-├── frontend-new/new-look/
-│   ├── public/               # Static assets
-│   ├── src/
-│   │   ├── components/       # Reusable React components & UI elements
-│   │   ├── pages/            # Application views (Dashboard, etc.)
-│   │   └── App.tsx           # Main application routing
-│   ├── package.json          # Node dependencies
-│   └── tailwind.config.ts    # Tailwind styling configuration
-└── README.md
+│   ├── requirements.txt
+│   └── app/
+│       ├── main.py
+│       ├── db/
+│       │   └── memory_store.py
+│       ├── models/
+│       │   └── schema.py
+│       ├── routes/
+│       │   ├── analyze.py
+│       │   ├── history.py
+│       │   └── rewrite.py
+│       └── services/
+│           ├── llm_service.py
+│           ├── similarity.py
+│           └── text_utils.py
+└── frontend-new/
+    └── new-look/
+        ├── bun.lockb
+        ├── components.json
+        ├── eslint.config.js
+        ├── index.html
+        ├── package.json
+        ├── postcss.config.js
+        ├── tailwind.config.ts
+        ├── tsconfig.app.json
+        ├── tsconfig.json
+        ├── tsconfig.node.json
+        ├── vite.config.ts
+        ├── vitest.config.ts
+        ├── public/
+        └── src/
+            ├── App.css
+            ├── App.tsx
+            ├── index.css
+            ├── main.tsx
+            ├── vite-env.d.ts
+            ├── components/
+            │   ├── NavLink.tsx
+            │   ├── ScrollToTop.tsx
+            │   └── plagiarism/
+            │       ├── Footer.tsx
+            │       ├── Hero.tsx
+            │       ├── History.tsx
+            │       ├── Navbar.tsx
+            │       ├── Preloader.tsx
+            │       └── Uploader.tsx
+            │   └── ui/
+            │       ├── accordion.tsx
+            │       ├── alert-dialog.tsx
+            │       ├── alert.tsx
+            │       ├── aspect-ratio.tsx
+            │       ├── avatar.tsx
+            │       ├── badge.tsx
+            │       ├── breadcrumb.tsx
+            │       ├── button.tsx
+            │       ├── calendar.tsx
+            │       ├── carousel.tsx
+            │       ├── chart.tsx
+            │       ├── checkbox.tsx
+            │       ├── collapsible.tsx
+            │       ├── command.tsx
+            │       ├── context-menu.tsx
+            │       ├── dialog.tsx
+            │       ├── drawer.tsx
+            │       ├── dropdown-menu.tsx
+            │       ├── form.tsx
+            │       ├── hover-card.tsx
+            │       ├── input-otp.tsx
+            │       ├── input.tsx
+            │       ├── label.tsx
+            │       ├── menubar.tsx
+            │       ├── navigation-menu.tsx
+            │       ├── pagination.tsx
+            │       ├── popover.tsx
+            │       ├── progress.tsx
+            │       ├── radio-group.tsx
+            │       ├── resizable.tsx
+            │       ├── scroll-area.tsx
+            │       ├── select.tsx
+            │       ├── separator.tsx
+            │       ├── sheet.tsx
+            │       ├── sidebar.tsx
+            │       ├── skeleton.tsx
+            │       ├── slider.tsx
+            │       ├── sonner.tsx
+            │       ├── switch.tsx
+            │       ├── table.tsx
+            │       ├── tabs.tsx
+            │       ├── textarea.tsx
+            │       ├── toaster.tsx
+            │       ├── toggle-group.tsx
+            │       ├── toggle.tsx
+            │       ├── tooltip.tsx
+            │       └── use-toast.ts
+            ├── hooks/
+            │   ├── use-mobile.tsx
+            │   └── use-toast.ts
+            ├── lib/
+            │   └── utils.ts
+            ├── pages/
+            │   ├── ApiInfo.tsx
+            │   ├── HistoryPage.tsx
+            │   ├── Index.tsx
+            │   ├── NotFound.tsx
+            │   └── PlaceholderPage.tsx
+            └── test/
+                ├── example.test.ts
+                └── setup.ts
 ```
 
 ## ⚙️ Installation & Setup
