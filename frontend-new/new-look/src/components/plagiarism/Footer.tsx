@@ -100,7 +100,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-border pt-8 md:flex-row md:items-center">
-          <div className="font-mono text-xs text-muted-foreground">© 2026 Plagiarism AI - Created by Debasmita, Manisha, Joita, Suchitra | All Rights Reserved</div>
+          <div className="font-mono text-xs text-muted-foreground">© 2026 Plagiarism AI - Created by Debasmita, Manisha, Joita | All Rights Reserved</div>
           <div className="font-display text-sm italic text-muted-foreground">"Empowering Originality."</div>
         </div>
       </div>
